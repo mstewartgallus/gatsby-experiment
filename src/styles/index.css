@@ -1,0 +1,40 @@
+p {
+    margin-block: var(--line-height);
+}
+
+h1,h2,h3,h4,h5,h6 {
+    margin-block: var(--line-height);
+    font-size: 2rem;
+}
+
+main {
+    max-inline-size: var(--main-size);
+}
+
+p {
+    max-inline-size: var(--leading);
+}
+
+body {
+    margin: 0;
+}
+
+:root {
+    padding-block: calc(1rem + 4 * var(--t));
+    padding-inline: calc(1rem + 7 * var(--t));
+}
+
+:root {
+    color-scheme: light dark;
+    font-family: sans-serif;
+    font-size: calc(1rem + 0.7 * var(--t));
+    line-height: var(--line-height);
+    text-underline-position: under;
+}
+
+:root {
+    --t: clamp(0rem, (1600vw - 320rem) / (1600 - 320), 1rem);
+    --line-height: 1.5rem;
+    --leading: 30rem;
+    --main-size: 40rem;
+}
