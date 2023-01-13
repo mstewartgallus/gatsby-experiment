@@ -1,0 +1,13 @@
+@media only screen and (prefers-color-scheme: dark) {
+    @import "./_syntax-dark.css";
+}
+@media only screen and (prefers-color-scheme: light) {
+    @import "./_syntax-light.css";
+}
+@media print {
+    @import "./_syntax-print.css";
+}
+
+.highlight {
+    background-color: transparent ;
+}
