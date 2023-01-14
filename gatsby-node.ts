@@ -1,37 +1,23 @@
 import * as moment from "moment";
 import { promises as fs } from "fs";
+import { spawn } from "child_process";
+import process from "process";
 
-export async function createSchemaCustomization({ actions }) {
-    const { createTypes } = actions;
-    const types = await fs.readFile('type-defs.gql', { encoding: `utf-8` });
-    await createTypes(types);
-};
-
-export async function onCreateNode({ node, actions, getNode }) {
-    const { createNodeField } = actions;
-    if (node.internal.type !== 'MarkdownRemark') {
-        return;
-    }
-
-    const { category, slug } = compute({ node, getNode });
-
-    await createNodeField({ name: 'category', node, value: category });
-    await createNodeField({ name: 'slug', node, value: slug });
-}
-
-export async function createResolvers({ createResolvers }) {
-    await createResolvers({
-        MarkdownRemark: {
-            next: { type: 'MarkdownRemark', resolve: next },
-            previous: { type: 'MarkdownRemark', resolve: previous }
-        }
-    });
-}
-
-function compute({ node, getNode }) {
+function postNodeOf({ node, getNode }) {
     const category = getNode(node.parent).relativeDirectory;
 
-    const { date, title } = node.frontmatter;
+    let { date, title, notice, tags, places } = node.frontmatter;
+
+    if (!date) {
+        throw new Error("no date");
+    }
+    if (!title) {
+        throw new Error("no title");
+    }
+
+    notice = notice ?? [];
+    tags = tags ?? [];
+    places = places ?? [];
 
     // 2022-10-20 10:49 -0800
     const utc = moment
@@ -39,19 +25,29 @@ function compute({ node, getNode }) {
         .format("YYYY/MM/DD");
 
     const slug = `/${category}/${utc}/${title}/`;
-    return { category, slug };
+
+    return { slug, date, category, title, notice, tags, places };
+}
+
+const resolveParentField = (field) => async (source, args, context, info) => {
+    const parent = await context.nodeModel.getNodeById({ id: source.parent });
+    const value = await context.nodeModel.getFieldValue(parent, field);
+    if (!value) {
+        throw new Error(`no ${field}`);
+    }
+    return value;
 }
 
 async function next(source, args, context, info) {
-    const { id, frontmatter: { date }} = source;
+    const { id, date } = source;
     const { entries } = await context.nodeModel.findAll({
-        type: 'MarkdownRemark',
+        type: 'Post',
         query: {
             limit: 1,
-            sort: { fields: ['frontmatter.date'], order: ['ASCC'] },
+            sort: { fields: ['date'], order: ['ASC'] },
             filter: {
                 id: { ne: id },
-                frontmatter: { date: { gte: date } }
+                date: { gte: date }
             }
         }
     });
@@ -63,15 +59,15 @@ async function next(source, args, context, info) {
 }
 
 async function previous(source, args, context, info) {
-    const { id, frontmatter: { date }} = source;
+    const { id, date } = source;
     const { entries } = await context.nodeModel.findAll({
-        type: 'MarkdownRemark',
+        type: 'Post',
         query: {
             limit: 1,
-            sort: { fields: ['frontmatter.date'], order: ['DESC'] },
+            sort: { fields: ['date'], order: ['DESC'] },
             filter: {
                 id: { ne: id },
-                frontmatter: { date: { lte: date } }
+                date: { lte: date }
             }
         }
     });
@@ -81,3 +77,73 @@ async function previous(source, args, context, info) {
     }
     return null;
 }
+
+const afterEmit = async compilation => {
+    const pf = spawn("yarn",
+                     ["run", "pagefind",
+                      "--source", "public",
+                      "--bundle-dir", "static/pagefind"]);
+    pf.stdout.on('data', (data) => {
+        process.stdout.write(data);
+    });
+    pf.stderr.on('data', (data) => {
+        process.stderr.write(data);
+    });
+    const code = await new Promise(r => pf.on('exit', r));
+    if (code !== 0) {
+        throw new Error(`pagefind ${code}`);
+    }
+};
+
+const pagefindPlugin = {
+    apply(compiler) {
+        compiler.hooks.afterEmit.tapPromise('PagefindPlugin', afterEmit);
+    }
+};
+
+export async function createSchemaCustomization({ actions }) {
+    const { createTypes } = actions;
+    const types = await fs.readFile('type-defs.gql', { encoding: `utf-8` });
+    await createTypes(types);
+};
+
+export const onCreateNode =
+    async ({
+        node,
+        actions,
+        createContentDigest,
+        createNodeId,
+        getNode
+    }) => {
+    if (node.internal.type !== 'MarkdownRemark') {
+        return;
+    }
+
+    const post = postNodeOf({ node, getNode });
+    const postNode = {
+        ...post,
+        children: [],
+        parent: node.id,
+        id: createNodeId(`${node.id} >>> POST`),
+        internal: {
+            type: 'Post',
+            contentDigest: createContentDigest(post)
+        }
+    };
+    await actions.createNode(postNode);
+    await actions.createParentChildLink({ parent: node, child: postNode });
+}
+
+export async function createResolvers({ createResolvers }) {
+    await createResolvers({
+        Post: {
+            html: { type: 'String!', resolve: resolveParentField('html') },
+            next: { type: 'Post', resolve: next },
+            previous: { type: 'Post', resolve: previous }
+        }
+    });
+}
+
+export const onCreateWebpackConfig = async ({ stage, actions, plugins }) => {
+    await actions.setWebpackConfig({ plugins: [pagefindPlugin] });
+};

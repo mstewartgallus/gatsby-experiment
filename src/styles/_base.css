@@ -207,7 +207,7 @@ main {
 body {
     box-sizing: border-box ;
 
-    display: body ;
+    display: block ;
 
     inline-size: fit-content;
     max-inline-size: 100% ;

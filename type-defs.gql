@@ -1,10 +1,5 @@
 type MarkdownRemark implements Node {
-  next: MarkdownRemark
-  previous: MarkdownRemark
-  slug: String! @proxy(from: "fields.slug")
-  category: String! @proxy(from: "fields.category")
   frontmatter: Frontmatter
-  fields: Fields
 }
 
 type Frontmatter {
@@ -16,7 +11,15 @@ type Frontmatter {
   places: [String!]
 }
 
-type Fields {
+type Post implements Node {
+  next: Post
+  previous: Post
+  date: Date! @dateformat
   category: String!
   slug: String!
+  title: String!
+  html: String!
+  notice: [String!]!
+  tags: [String!]!
+  places: [String!]!
 }

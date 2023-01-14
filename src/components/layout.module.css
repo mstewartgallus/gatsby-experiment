@@ -1,0 +1,8 @@
+@media (min-width: 130ch) {
+    .layout {
+        display: flex ;
+    }
+}
+.layout {
+    flex-wrap: wrap ;
+}

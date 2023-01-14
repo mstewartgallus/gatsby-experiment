@@ -1,10 +1,12 @@
 import type { GatsbyConfig } from "gatsby"
 
 const config: GatsbyConfig = {
-  siteMetadata: {
-    siteUrl: "https://mstewartgallus.github.io"
-  },
-  graphqlTypegen: true,
+    siteMetadata: {
+        title: "Words to Kick Your Teeth Out",
+        description: "lol lmao",
+        siteUrl: "https://mstewartgallus.github.io"
+    },
+    graphqlTypegen: true,
     plugins: [
         {
             resolve: "gatsby-source-filesystem",
