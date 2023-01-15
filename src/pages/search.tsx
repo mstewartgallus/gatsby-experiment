@@ -1,10 +1,13 @@
 import * as React from "react";
-import { navigate, Link, Script } from "gatsby";
+import { navigate, Link, Script, useStaticQuery, graphql } from "gatsby";
 import type { HeadFC, PageProps } from "gatsby";
 import Title from "../components/title.tsx";
 import Layout from "../components/layout.tsx";
 import Sidebar from "../components/sidebar.tsx";
+import Select from "../components/select.tsx";
+import Option from "../components/option.tsx";
 import Breadcrumbs from "../components/breadcrumbs.tsx";
+import { search } from "./search.module.css";
 
 const imp = new Function('x', 'return import(x);');
 const getpf = async () => {
@@ -16,7 +19,16 @@ const pagefindToPost = ({ url, meta: { title } }) => ({
     'value': title
 });
 
-const search = async (signal, {s, category, tag, place }) => {
+const useTags = () => useStaticQuery(graphql`
+query {
+  allPost {
+    place: distinct(field: {places: SELECT})
+    tags: distinct(field: {tags: SELECT})
+    category: distinct(field: {category: SELECT})
+  }
+}`).allPost;
+
+const runSearch = async (signal, {s, category, tag, place }) => {
     if (signal.aborted) {
         return [];
     }
@@ -65,50 +77,35 @@ const search = async (signal, {s, category, tag, place }) => {
     return posts.map(pagefindToPost);
 };
 
-const allCategory = ['poem', 'post'];
-const allPlace = ['Vancouver', 'Downtown'];
-const allTag = ['Coffee', 'Spoopy'];
+const selectState = (legend, all, value) => {
+    const [selected, setter] = React.useState(new Set(value));
+    return {
+        legend,
+        all,
+        selected,
+        onChange: event => {
+            const { target: { checked, value } } = event;
+            const next = new Set(selected);
+            if (checked) {
+                next.add(value);
+            } else {
+                next.delete(value);
+            }
+            setter(next);
+        }
+    };
+};
 
 const SearchForm = ({s, category, place, tag}) => {
     const [getS, setS] = React.useState(s);
-    const [getCategory, setCategory] = React.useState(new Set(category));
-    const [getPlace, setPlace] = React.useState(new Set(place));
-    const [getTag, setTag] = React.useState(new Set(tag));
-
     const onChangeS = (event) => setS(event.target.value);
-    const onChangeCategory = (event) => {
-        const { target: { checked, value } } = event;
-        const newCat = new Set(getCategory);
-        if (checked) {
-            newCat.add(value);
-        } else {
-            newCat.delete(value);
-        }
 
-        setCategory(newCat);
-    };
+    const tags = useTags();
 
-    const onChangePlace = (event) => {
-        const { target: { checked, value } } = event;
-        const newPlace = new Set(getPlace);
-        if (checked) {
-            newPlace.add(value);
-        } else {
-            newPlace.delete(value);
-        }
-
-        setPlace(newPlace);
-    };
-    const onChangeTag = (event) => {
-        const { target: { checked, value } } = event;
-        const newTag = new Set(getTag);
-        if (checked) {
-            newTag.add(value);
-        } else {
-            newTag.delete(value);
-        }
-
-        setTag(newTag);
+    const selects = {
+        'category': selectState('Category', tags.category, category),
+        'place': selectState('Place', tags.place, place),
+        'tag': selectState('Tag', tags.tags, tag)
     };
 
     const onSubmit = (event) => {
@@ -116,14 +113,17 @@ const SearchForm = ({s, category, place, tag}) => {
 
         const p = new URLSearchParams();
         p.set('s', getS);
-        for (const c of getCategory) {
-            p.append('category', c);
+
+        for (const [k, {selected}] of Object.entries(selects)) {
+            for (const v of selected) {
+                p.append(k, v);
+            }
         }
         navigate(`/search?${p}`);
     };
 
     const id = React.useId();
-    return <form aria-describedby={id} role="search" rel="search"
+    return <form className={search} aria-describedby={id} role="search" rel="search"
         action="/search"
         onSubmit={onSubmit}>
           <header className="sr-only">
@@ -132,60 +132,30 @@ const SearchForm = ({s, category, place, tag}) => {
             </hgroup>
           </header>
 
-    <fieldset className="search-basic">
+    <div className="search-basic">
             <label htmlFor={`${id}-input`}>Query</label>
             <input id={`${id}-input`} name="s" type="search" required
                    value={getS}
                    onChange={onChangeS}
             />
             <button type="submit">Search</button>
-    </fieldset>
+    </div>
 
-<fieldset id={`${id}-category`}>
-<legend>Category</legend>
-     {
-         allCategory.map(category =>
-             <React.Fragment key={category}>
-             <input id={`${id}-category-${category}`}
-                     type="checkbox" name="category"
-                     value={ category }
-                         onChange={onChangeCategory}
-                         checked={getCategory.has(category)}
-             />
-             <label htmlFor={`${id}-category-${category}`}>{category}</label>
-             </React.Fragment>)
+    {
+        Object.entries(selects).map(([name, {legend, all, selected, onChange}]) =>
+            <Select key={name} name={name}>
+               <legend>{legend}</legend>
+               {
+                   all.map(opt =>
+                       <Option key={opt}
+                            onChange={onChange}
+                            selected={selected.has(opt)}
+                            value={opt}>
+                       {opt}
+                      </Option>)
+               }</Select>
+            )
     }
-  </fieldset>
-        <fieldset id={`${id}-place`}>
-<legend>Place</legend>
-     {
-         allPlace.map(place =>
-             <React.Fragment key={place}>
-             <input id={`${id}-place-${place}`}
-                     type="checkbox" name="place"
-                     value={ place }
-                         onChange={onChangePlace}
-                         checked={getPlace.has(place)}
-             />
-             <label htmlFor={`${id}-place-${place}`}>{place}</label>
-             </React.Fragment>)
-    }
-  </fieldset>
- <fieldset id={`${id}-tag`}>
-        <legend>Tag</legend>
-     {
-         allTag.map(tag =>
-             <React.Fragment key={tag}>
-             <input id={`${id}-tag-${tag}`}
-                     type="checkbox" name="tag"
-                     value={ tag }
-                         onChange={onChangeTag}
-                         checked={getTag.has(tag)}
-             />
-             <label htmlFor={`${id}-tag-${tag}`}>{tag}</label>
-             </React.Fragment>)
-    }
-  </fieldset>
 </form>;
 };
 
@@ -196,7 +166,7 @@ const PostList = ({s, category, tag, place}) => {
         const abort = new AbortController();
         const signal = abort.signal;
         (async () => {
-            const p = await search(signal, { s, category, tag, place });
+            const p = await runSearch(signal, { s, category, tag, place });
             if (signal.aborted) {
                 return;
             }

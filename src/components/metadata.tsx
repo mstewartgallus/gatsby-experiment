@@ -4,7 +4,7 @@ import { metadata } from "./metadata.module.css";
 
 const Place = ({place}) =>
     <dd><Link to={`/search?place=${place}`}
-              data-pagefind-meta="place">{place}</Link></dd>;
+              data-pagefind-filter="place">{place}</Link></dd>;
 const Places = ({places}) => places.map(p => <Place key={p} place={p}/>);
 const PlaceList = ({places}) =>
     (!places || places.length === 0) ? null :
@@ -15,7 +15,7 @@ const PlaceList = ({places}) =>
 
 const Tag = ({tag}) =>
     <dd><Link to={`/search?tag=${tag}`}
-              data-pagefind-meta="tag">{tag}</Link></dd>;
+              data-pagefind-filter="tag">{tag}</Link></dd>;
 const Tags = ({tags}) => tags.map(t => <Tag key={t} tag={t} />);
 const TagList = ({tags}) =>
     (!tags || tags.length === 0) ? null :
@@ -34,7 +34,7 @@ export const Metadata = ({ dateDisplay, dateXml, author, places, tags }) => {
   <dl>
     <div>
       <dt>Post Date</dt>
-      <dd><time data-pagefind-meta="date" data-pagefind-sort="date"
+      <dd><time data-pagefind-filter="date[datetime]" data-pagefind-sort="date[datetime]"
             dateTime={dateXml}>{dateDisplay}</time></dd>
     </div>
     <div>

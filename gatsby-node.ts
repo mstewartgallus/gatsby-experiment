@@ -34,19 +34,10 @@ function postNodeOf({ node, getNode }) {
     const catSlug = slugify(category, opts);
     const titleSlug = slugify(title, opts);
 
-    let slug = `/${catSlug}/${utc}/${titleSlug}/`;
+    const slug = `/${catSlug}/${utc}/${titleSlug}/`;
     return { slug, date,
              category, title, notice, tags, places,
              contentFilePath };
-}
-
-const body = async (source, args, context, info) => {
-    const parent = await context.nodeModel.getNodeById({ id: source.parent });
-    const value = await context.nodeModel.getFieldValue(parent, 'body');
-    if (!value) {
-        throw new Error('no body');
-    }
-    return value;
 }
 
 async function next(source, args, context, info) {
@@ -148,7 +139,6 @@ export const onCreateNode =
 export const createResolvers = async ({ createResolvers }) => {
     await createResolvers({
         Post: {
-            body: { type: 'String!', resolve: body },
             next: { type: 'Post', resolve: next },
             previous: { type: 'Post', resolve: previous }
         }
