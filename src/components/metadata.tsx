@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "gatsby";
-import * as moment from "moment";
+import { metadata } from "./metadata.module.css";
 
 const Place = ({place}) =>
     <dd><Link to={`/search?place=${place}`}
@@ -24,26 +24,18 @@ const TagList = ({tags}) =>
       <Tags tags={tags} />
      </div>;
 
-const formatDate = (date) =>
-    moment
-        .utc(date, 'YYYY-MM-DD HH:mm Z', 'en')
-        .format("YYYY-MM-DD");
-const xmlDate = (date) =>
-    moment
-        .utc(date, 'YYYY-MM-DD HH:mm Z', 'en')
-        .format();
-
-export const Metadata = ({ date, author, places, tags }) =>
-<footer aria-describedby="metadata-title">
+export const Metadata = ({ dateDisplay, dateXml, author, places, tags }) => {
+    const id = React.useId();
+    return <footer className={metadata} aria-describedby={id}>
   <hgroup className="sr-only">
-    <h2 id="metadata-title">Metadata</h2>
+        <h2 id={id}>Metadata</h2>
   </hgroup>
 
   <dl>
     <div>
       <dt>Post Date</dt>
       <dd><time data-pagefind-meta="date" data-pagefind-sort="date"
-            dateTime={xmlDate(date)}>{formatDate(date)}</time></dd>
+            dateTime={dateXml}>{dateDisplay}</time></dd>
     </div>
     <div>
       <dt>Author</dt>
@@ -52,6 +44,7 @@ export const Metadata = ({ date, author, places, tags }) =>
     <PlaceList places={places} />
     <TagList tags={tags} />
   </dl>
-</footer>;
+        </footer>
+};
 
 export default Metadata;

@@ -5,12 +5,13 @@ import Layout from "../components/layout.tsx";
 
 export const Head: HeadFC = () => <title>Not found</title>;
 
-export const NotFoundPage: React.FC<PageProps> = () =>
-   <Layout>
-      <main aria-describedby="title">
+export const NotFoundPage: React.FC<PageProps> = () => {
+    const id = React.useId();
+    return <Layout>
+    <main aria-describedby={id}>
         <header>
           <hgroup>
-            <h1 id="title">Page not found</h1>
+        <h1 id={id}>Page not found</h1>
           </hgroup>
         </header>
       <p>
@@ -22,6 +23,6 @@ export const NotFoundPage: React.FC<PageProps> = () =>
     <Sidebar>
     </Sidebar>
 </Layout>
-;
+};
 
 export default NotFoundPage;

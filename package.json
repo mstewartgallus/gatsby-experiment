@@ -16,10 +16,11 @@
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
-        "hooks": "link:./src/hooks",
+        "@mdx-js/react": "^2.2.1",
         "gatsby": "^5.3.3",
+        "gatsby-plugin-mdx": "^5.4.0",
         "gatsby-source-filesystem": "^5.4.0",
-        "gatsby-transformer-remark": "^6.4.0",
+        "hooks": "link:./src/hooks",
         "pagefind": "^0.10.6",
         "react": "^18.2.0",
         "react-dom": "^18.2.0"

@@ -1,12 +1,17 @@
-import * as moment from "moment";
+import moment from "moment";
+import path from "path";
 import { promises as fs } from "fs";
 import { spawn } from "child_process";
 import process from "process";
+import slugify from "slugify";
 
 function postNodeOf({ node, getNode }) {
-    const category = getNode(node.parent).relativeDirectory;
+    const parent = getNode(node.parent);
+    const category = parent.relativeDirectory;
 
     let { date, title, notice, tags, places } = node.frontmatter;
+
+    const contentFilePath = node.internal.contentFilePath;
 
     if (!date) {
         throw new Error("no date");
@@ -24,16 +29,22 @@ function postNodeOf({ node, getNode }) {
         .utc(date, 'YYYY-MM-DD HH:mm Z', 'en')
         .format("YYYY/MM/DD");
 
-    const slug = `/${category}/${utc}/${title}/`;
+    // FIXME replace / in title with something else
+    const opts = { lower: true };
+    const catSlug = slugify(category, opts);
+    const titleSlug = slugify(title, opts);
 
-    return { slug, date, category, title, notice, tags, places };
+    let slug = `/${catSlug}/${utc}/${titleSlug}/`;
+    return { slug, date,
+             category, title, notice, tags, places,
+             contentFilePath };
 }
 
-const resolveParentField = (field) => async (source, args, context, info) => {
+const body = async (source, args, context, info) => {
     const parent = await context.nodeModel.getNodeById({ id: source.parent });
-    const value = await context.nodeModel.getFieldValue(parent, field);
+    const value = await context.nodeModel.getFieldValue(parent, 'body');
     if (!value) {
-        throw new Error(`no ${field}`);
+        throw new Error('no body');
     }
     return value;
 }
@@ -91,7 +102,7 @@ const afterEmit = async compilation => {
     });
     const code = await new Promise(r => pf.on('exit', r));
     if (code !== 0) {
-        throw new Error(`pagefind ${code}`);
+        process.stderr.write(`pagefind ${code}`);
     }
 };
 
@@ -115,7 +126,7 @@ export const onCreateNode =
         createNodeId,
         getNode
     }) => {
-    if (node.internal.type !== 'MarkdownRemark') {
+    if (node.internal.type !== 'Mdx') {
         return;
     }
 
@@ -134,15 +145,48 @@ export const onCreateNode =
     await actions.createParentChildLink({ parent: node, child: postNode });
 }
 
-export async function createResolvers({ createResolvers }) {
+export const createResolvers = async ({ createResolvers }) => {
     await createResolvers({
         Post: {
-            html: { type: 'String!', resolve: resolveParentField('html') },
+            body: { type: 'String!', resolve: body },
             next: { type: 'Post', resolve: next },
             previous: { type: 'Post', resolve: previous }
         }
     });
-}
+};
+
+export const createPages = async ({ graphql, actions, reporter }) => {
+    const { createPage } = actions;
+
+  const result = await graphql(`
+    query Posts {
+      allPost {
+        nodes {
+          id
+          slug
+          contentFilePath
+        }
+      }
+    }
+  `);
+
+    if (result.errors) {
+        reporter.panicOnBuild('Error loading posts', result.errors);
+        return;
+    }
+
+    const posts = result.data.allPost.nodes
+    const postTemplate = path.resolve('./src/templates/post.tsx');
+    for (const post of posts) {
+        // FIXME slugify
+        const { id, slug, contentFilePath } = post;
+        await createPage({
+            path: slug,
+            component: `${postTemplate}?__contentFilePath=${contentFilePath}`,
+            context: { id }
+        });
+    }
+};
 
 export const onCreateWebpackConfig = async ({ stage, actions, plugins }) => {
     await actions.setWebpackConfig({ plugins: [pagefindPlugin] });

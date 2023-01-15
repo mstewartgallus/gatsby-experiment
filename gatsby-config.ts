@@ -9,18 +9,16 @@ const config: GatsbyConfig = {
     graphqlTypegen: true,
     plugins: [
         {
-            resolve: "gatsby-source-filesystem",
+            resolve: "gatsby-plugin-mdx",
             options: {
-                path: `${__dirname}/src/posts`,
-                name: "posts"
+                extensions: ['.md', '.mdx', '.markdown']
             }
         },
         {
-            resolve: "gatsby-transformer-remark",
+            resolve: "gatsby-source-filesystem",
             options: {
-                footnotes: true,
-                gfm: true,
-                plugins: []
+                path: `${__dirname}/src/posts`,
+                name: 'posts'
             }
         }
     ]

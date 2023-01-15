@@ -1,4 +1,4 @@
-type MarkdownRemark implements Node {
+type Mdx implements Node {
   frontmatter: Frontmatter
 }
 
@@ -18,7 +18,7 @@ type Post implements Node {
   category: String!
   slug: String!
   title: String!
-  html: String!
+  body: String!
   notice: [String!]!
   tags: [String!]!
   places: [String!]!

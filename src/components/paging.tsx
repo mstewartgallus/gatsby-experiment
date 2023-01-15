@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Link, graphql } from "gatsby";
+import { Link } from "gatsby";
+import { paging } from "./paging.module.css";
 
 const Prev = ({ children, href }) =>
     !href ? null :
@@ -15,17 +16,19 @@ const Next = ({ children, href }) =>
        <dd>{children}</dd>
      </div>;
 
-export const Paging = ({ previous, next, phref, nhref }) =>
-<nav aria-labelledby="paging-title">
+export const Paging = ({ previous, next, phref, nhref }) => {
+    const id = React.useId();
+    return <nav className={paging} aria-labelledby={id}>
   <header className="sr-only">
     <hgroup>
-       <h2 id="paging-title">Paging</h2>
+        <h2 id={id}>Paging</h2>
      </hgroup>
   </header>
   <dl>
     <Prev href={phref}><cite>{previous}</cite></Prev>
     <Next href={nhref}><cite>{next}</cite></Next>
   </dl>
-</nav>;
+        </nav>;
+};
 
 export default Paging;
