@@ -22,16 +22,18 @@ const pagefindToPost = ({ url, meta: { title } }) => ({
 const useTags = () => useStaticQuery(graphql`
 query {
   allPost {
-    place: distinct(field: {places: SELECT})
-    tags: distinct(field: {tags: SELECT})
-    category: distinct(field: {category: SELECT})
+     place: distinct(field: {metadata: {places: SELECT}})
+     tags: distinct(field: {metadata: {tags: SELECT}})
+     category: distinct(field: {metadata: {category: SELECT}})
   }
 }`).allPost;
 
-const runSearch = async (signal, {s, category, tag, place }) => {
-    if (signal.aborted) {
-        return [];
-    }
+const mapPromise = async (xs, f) => {
+    return await Promise.all(xs.map(f));
+};
+
+const runSearch = async (s, { signal, filter: {category, tag, place }}) => {
+    signal.throwIfAborted();
 
     if (s == '') {
         s = null;
@@ -45,9 +47,7 @@ const runSearch = async (signal, {s, category, tag, place }) => {
         return [];
     }
 
-    if (signal.aborted) {
-        return [];
-    }
+    signal.throwIfAborted();
 
     const filters = {};
     if (category.length > 0) {
@@ -59,22 +59,17 @@ const runSearch = async (signal, {s, category, tag, place }) => {
     if (place.length > 0) {
         filters.place = place;
     }
-    const { results } = await pf.search(s, { filters });
+    const posts = (await pf.search(s, { filters })).results;
 
-    if (signal.aborted) {
-        return [];
-    }
+    signal.throwIfAborted();
 
-    const posts = [];
-    for (const d of posts) {
-        posts.push(await d);
+    // FIXME race?
+    const links = await mapPromise(posts, async postPs => {
+        return pagefindToPost(await postPs.data());
+    });
+    signal.throwIfAborted();
 
-        if (signal.aborted) {
-            return [];
-        }
-    }
-
-    return posts.map(pagefindToPost);
+    return links;
 };
 
 const selectState = (legend, all, value) => {
@@ -134,7 +129,7 @@ const SearchForm = ({s, category, place, tag}) => {
 
     <div className="search-basic">
             <label htmlFor={`${id}-input`}>Query</label>
-            <input id={`${id}-input`} name="s" type="search" required
+            <input id={`${id}-input`} name="s" type="search"
                    value={getS}
                    onChange={onChangeS}
             />
@@ -166,15 +161,20 @@ const PostList = ({s, category, tag, place}) => {
         const abort = new AbortController();
         const signal = abort.signal;
         (async () => {
-            const p = await runSearch(signal, { s, category, tag, place });
-            if (signal.aborted) {
-                return;
+            let p;
+            try {
+                p = await runSearch(s, { signal, filter: { category, tag, place } });
+                signal.throwIfAborted();
+            } catch (e) {
+                if (e === 'newpage') {
+                    return;
+                } else {
+                    throw e;
+                }
             }
             setPosts(p);
         })();
-        return () => {
-            abort.abort();
-        };
+        return () => abort.abort('newpage');
     }, [s, category, tag, place]);
 
     return <ul>{

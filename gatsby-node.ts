@@ -4,15 +4,46 @@ import { promises as fs } from "fs";
 import { spawn } from "child_process";
 import process from "process";
 import slugify from "slugify";
+import grayMatter from "gray-matter";
 
-function postNodeOf({ node, getNode }) {
-    const parent = getNode(node.parent);
-    const category = parent.relativeDirectory;
+const frontmatter = source => {
+    return grayMatter(source,
+                                         {
+        language: 'yaml',
+        engines: {
+            js: () => {
+                return {}
+            },
+            javascript: () => {
+                return {}
+            },
+            json: () => {
+                return {}
+            },
+        }
+    });
+};
 
-    let { date, title, notice, tags, places } = node.frontmatter;
+function slugOf({ date, category, title }) {
+    // 2022-10-20 10:49 -0800
+    const utc = moment
+        .utc(date, 'YYYY-MM-DD HH:mm Z', 'en')
+        .format("YYYY/MM/DD");
 
-    const contentFilePath = node.internal.contentFilePath;
+    // FIXME replace / in title with something else
+    const opts = { lower: true };
+    const catSlug = slugify(category, opts);
+    const titleSlug = slugify(title, opts);
 
+    return `/${catSlug}/${utc}/${titleSlug}/`;
+}
+
+const metadata = frontmatter => {
+    let { category, date, title, notice, tags, places } = frontmatter;
+
+    if (!category) {
+        throw new Error("no category");
+    }
     if (!date) {
         throw new Error("no date");
     }
@@ -24,24 +55,56 @@ function postNodeOf({ node, getNode }) {
     tags = tags ?? [];
     places = places ?? [];
 
-    // 2022-10-20 10:49 -0800
-    const utc = moment
-        .utc(date, 'YYYY-MM-DD HH:mm Z', 'en')
-        .format("YYYY/MM/DD");
+    const slug = slugOf({ category, date, title });
 
-    // FIXME replace / in title with something else
-    const opts = { lower: true };
-    const catSlug = slugify(category, opts);
-    const titleSlug = slugify(title, opts);
+    return { slug, date, category, title, notice, tags, places };
+};
 
-    const slug = `/${catSlug}/${utc}/${titleSlug}/`;
-    return { slug, date,
-             category, title, notice, tags, places,
-             contentFilePath };
-}
+const parsePoem = source => {
+    source = source.trim();
+    const stanzas = source.split('\n\n');
+    return stanzas.map(stanza => {
+        stanza = stanza.trim();
+        const lines = stanza.split('\n');
+        return lines.map(line => {
+            line = line.trim();
+            const segments = line.split('‖');
+            return segments;
+        });
+    });
+};
+const postNodeOfPoemFile = async ({ node, loadNodeContent }) => {
+    const category = node.relativeDirectory;
+
+    const { content, data } = frontmatter(await loadNodeContent(node));
+
+    const ast = parsePoem(content);
+
+    return {
+        metadata: metadata({ category, ...data }),
+        content: {
+            __typename: 'PoemContent',
+            body: ast
+        }};
+};
+
+const postNodeOfMdx = async ({ node, getNode }) => {
+    const parent = getNode(node.parent);
+    const category = parent.relativeDirectory;
+
+    const contentFilePath = node.internal.contentFilePath;
+
+    return {
+        metadata: metadata({ category, ...node.frontmatter }),
+        content: {
+            __typename: 'MdxContent',
+            contentFilePath
+        }
+    };
+};
 
 async function next(source, args, context, info) {
-    const { id, date } = source;
+    const { id, metadata: { date } } = source;
     const { entries } = await context.nodeModel.findAll({
         type: 'Post',
         query: {
@@ -61,7 +124,7 @@ async function next(source, args, context, info) {
 }
 
 async function previous(source, args, context, info) {
-    const { id, date } = source;
+    const { id, metadata: { date } } = source;
     const { entries } = await context.nodeModel.findAll({
         type: 'Post',
         query: {
@@ -80,7 +143,7 @@ async function previous(source, args, context, info) {
     return null;
 }
 
-const afterEmit = async compilation => {
+const pagefind = async () => {
     const pf = spawn("yarn",
                      ["run", "pagefind",
                       "--source", "public",
@@ -99,29 +162,23 @@ const afterEmit = async compilation => {
 
 const pagefindPlugin = {
     apply(compiler) {
-        compiler.hooks.afterEmit.tapPromise('PagefindPlugin', afterEmit);
+        compiler.hooks.done.tapPromise('PagefindPlugin', pagefind);
     }
 };
 
-export async function createSchemaCustomization({ actions }) {
-    const { createTypes } = actions;
-    const types = await fs.readFile('type-defs.gql', { encoding: `utf-8` });
-    await createTypes(types);
-};
-
-export const onCreateNode =
-    async ({
+const onCreateFileNode = async props => {
+    const {
         node,
         actions,
         createContentDigest,
         createNodeId,
         getNode
-    }) => {
-    if (node.internal.type !== 'Mdx') {
+    } = props;
+    if (node.extension !== 'poem') {
         return;
     }
 
-    const post = postNodeOf({ node, getNode });
+    const post = await postNodeOfPoemFile(props);
     const postNode = {
         ...post,
         children: [],
@@ -134,6 +191,54 @@ export const onCreateNode =
     };
     await actions.createNode(postNode);
     await actions.createParentChildLink({ parent: node, child: postNode });
+};
+
+const onCreateMdxNode = async ({
+    node,
+    actions,
+    createContentDigest,
+    createNodeId,
+    getNode
+}) => {
+    const post = await postNodeOfMdx({ node, getNode });
+    const postNode = {
+        ...post,
+        children: [],
+        parent: node.id,
+        id: createNodeId(`${node.id} >>> POST`),
+        internal: {
+            type: 'Post',
+            contentDigest: createContentDigest(post)
+        }
+    };
+    await actions.createNode(postNode);
+    await actions.createParentChildLink({ parent: node, child: postNode });
+};
+
+export async function createSchemaCustomization({ actions, schema }) {
+    const { createTypes } = actions;
+    const types = await fs.readFile('type-defs.gql', { encoding: `utf-8` });
+    await createTypes(types);
+    await createTypes([schema.buildUnionType({
+        name: 'Content',
+        resolveType(value) {
+            // FIXME ugly hack
+            const typename = value.__typename;
+            if (!typename) {
+                throw new Error("no typename");
+            }
+            return typename;
+        }
+    })]);
+};
+
+export const onCreateNode = async props => {
+    switch (props.node.internal.type) {
+        case 'Mdx':
+            return await onCreateMdxNode(props);
+        case 'File':
+            return await onCreateFileNode(props);
+    }
 }
 
 export const createResolvers = async ({ createResolvers }) => {
@@ -148,17 +253,27 @@ export const createResolvers = async ({ createResolvers }) => {
 export const createPages = async ({ graphql, actions, reporter }) => {
     const { createPage } = actions;
 
-  const result = await graphql(`
+    const result = await graphql(`
     query Posts {
       allPost {
         nodes {
           id
-          slug
-          contentFilePath
+          metadata {
+            slug
+          }
+          content {
+            __typename
+            ... on MdxContent {
+               contentFilePath
+            }
+            ... on PoemContent {
+               body
+            }
+          }
         }
       }
     }
-  `);
+`);
 
     if (result.errors) {
         reporter.panicOnBuild('Error loading posts', result.errors);
@@ -166,15 +281,32 @@ export const createPages = async ({ graphql, actions, reporter }) => {
     }
 
     const posts = result.data.allPost.nodes
-    const postTemplate = path.resolve('./src/templates/post.tsx');
+    const mdxTemplate = path.resolve('./src/templates/post.tsx');
+    const poemTemplate = path.resolve('./src/templates/post.tsx');
     for (const post of posts) {
-        // FIXME slugify
-        const { id, slug, contentFilePath } = post;
-        await createPage({
-            path: slug,
-            component: `${postTemplate}?__contentFilePath=${contentFilePath}`,
-            context: { id }
-        });
+        const { id, metadata: { slug }, content } = post;
+        switch (content.__typename) {
+            case 'PoemContent':
+                {
+                    await createPage({
+                        path: slug,
+                        component: `${mdxTemplate}`,
+                        context: { id }
+                    });
+                    break;
+                }
+
+            case 'MdxContent':
+                {
+                    const contentFilePath = content.contentFilePath;
+                    await createPage({
+                        path: slug,
+                        component: `${mdxTemplate}?__contentFilePath=${contentFilePath}`,
+                        context: { id }
+                    });
+                    break;
+                }
+        }
     }
 };
 

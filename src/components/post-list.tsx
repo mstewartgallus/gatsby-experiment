@@ -5,9 +5,11 @@ const usePosts = () => useStaticQuery(graphql`
 query {
   allPost(sort: {date: DESC}) {
     nodes {
-      title
-      slug
-    }
+      metadata {
+        title
+        slug
+     }
+   }
   }
 }`).allPost.nodes;
 
@@ -18,7 +20,7 @@ export const PostList = () => {
         return null;
     }
     return <ol reversed>
-    {posts.map(({ slug, title }) =>
+    {posts.map(({ metadata: { slug, title }}) =>
         <li key={slug}>
           <Link to={slug}>{title}</Link>
         </li>)}
