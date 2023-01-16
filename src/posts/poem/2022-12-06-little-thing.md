@@ -10,10 +10,10 @@ tags:
 - <q>I am tall</q> it said
 - and stood to prove its point.
 
-- Nothing but the sky around
-- so vast the earth surround.
-- could hear and scarcely see
-- the little speck.
++ Nothing but the sky around
++ so vast the earth surround.
++ could hear and scarcely see
++ the little speck.
 
 - The sky knelt a little lower
 - to observe this would-be challenger.

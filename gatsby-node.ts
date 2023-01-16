@@ -7,8 +7,7 @@ import slugify from "slugify";
 import grayMatter from "gray-matter";
 
 const frontmatter = source => {
-    return grayMatter(source,
-                                         {
+    return grayMatter(source, {
         language: 'yaml',
         engines: {
             js: () => {

@@ -8,6 +8,7 @@ import Sidebar from "../components/sidebar.tsx";
 import Metadata from "../components/metadata.tsx";
 import Breadcrumbs from "../components/breadcrumbs.tsx";
 import { MDXProvider } from "@mdx-js/react";
+import { H1, H2, H3, H4, H5, H6 } from "../components/heading.tsx";
 import { Lg } from "../components/lg.tsx";
 import { L } from "../components/l.tsx";
 import { Caesura } from "../components/caesura.tsx";
@@ -24,12 +25,19 @@ const Notice = ({notice}) =>
       </div>
     </dl>;
 
-export const Head: HeadFC = ({ data: { post: { title } }}) =>
-    <Title>{title}</Title>;
-
+export const Head: HeadFC = ({ data: { post }}) =>
+    <Title>{post.metadata.title}</Title>;
 
 const shortcodes = { Lg, L, Caesura };
 const poem = { ul: Lg, li: L };
+const autolinkHeadings = { h1: H1, h2: H2, h3: H3, h4: H4, h5: H5, h6: H6 };
+
+const defaultComponents = { ...shortcodes, ...autolinkHeadings };
+
+const components = new Map(Object.fromEntries({
+    poem: { ...defaultComponents, ...poem },
+    prose: defaultComponents
+}));
 
 export const BlogPost: React.FC<PageProps> = ({
     children,
@@ -45,13 +53,8 @@ export const BlogPost: React.FC<PageProps> = ({
         }
     }
 }) => {
-    const components = {};
-    Object.assign(components, shortcodes);
-    if (category == 'poem') {
-        Object.assign(components, poem);
-    }
     const id = React.useId();
-    return <MDXProvider components={components}>
+    return <MDXProvider components={components.get(category)}>
         <Layout>
          <main data-pagefind-body aria-describedby={id}>
             <header>

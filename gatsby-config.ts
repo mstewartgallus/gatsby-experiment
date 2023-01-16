@@ -1,4 +1,8 @@
-import type { GatsbyConfig } from "gatsby"
+import type { GatsbyConfig } from "gatsby";
+
+// For "reasons" we need to do workarounds like this
+// const RemarkGFM = (await import("remark-gfm")).default;
+// const RehypeSlug = (await import("rehype-slug")).default;
 
 const config: GatsbyConfig = {
     siteMetadata: {
@@ -11,7 +15,11 @@ const config: GatsbyConfig = {
         {
             resolve: "gatsby-plugin-mdx",
             options: {
-                extensions: ['.md', '.mdx', '.markdown']
+                extensions: ['.md', '.mdx', '.markdown'],
+                mdxOptions: {
+                    // remarkPlugins: [RemarkGfm],
+                    // rehypePlugins: [RehypeSlug]
+                }
             }
         },
         {
@@ -22,6 +30,6 @@ const config: GatsbyConfig = {
             }
         }
     ]
-}
+};
 
-export default config
+export default config;
