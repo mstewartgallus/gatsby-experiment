@@ -10,7 +10,7 @@ tags:
 
 Common poetry markup is inaccessible, unsemantic and doesn't display
 well. I am not skilled in accessibility and I don't have good
-solutions.  See [<cite>Try It</cite>](#tryit) if you want to try out a screen
+solutions.  See [<cite>Try It</cite>](#try-it) if you want to try out a screen
 reader yourself.
 
 **Special thanks to the kind people who helped edit this post.**

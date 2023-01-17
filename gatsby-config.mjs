@@ -1,10 +1,10 @@
-import type { GatsbyConfig } from "gatsby";
+import RemarkGfm from 'remark-gfm';
+import RehypeSlug from 'rehype-slug';
+import * as url from 'url';
 
-// For "reasons" we need to do workarounds like this
-// const RemarkGFM = (await import("remark-gfm")).default;
-// const RehypeSlug = (await import("rehype-slug")).default;
+const resolve = (name) => url.fileURLToPath(new URL(name, import.meta.url));
 
-const config: GatsbyConfig = {
+const config = {
     siteMetadata: {
         title: "Words to Kick Your Teeth Out",
         description: "lol lmao",
@@ -17,15 +17,15 @@ const config: GatsbyConfig = {
             options: {
                 extensions: ['.md', '.mdx', '.markdown'],
                 mdxOptions: {
-                    // remarkPlugins: [RemarkGfm],
-                    // rehypePlugins: [RehypeSlug]
-                }
+                    remarkPlugins: [RemarkGfm],
+                    rehypePlugins: [RehypeSlug],
+               }
             }
         },
         {
             resolve: "gatsby-source-filesystem",
             options: {
-                path: `${__dirname}/src/posts`,
+                path: resolve('src/posts'),
                 name: 'posts'
             }
         }

@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Link, graphql, useStaticQuery } from "gatsby";
 import type { HeadFC, PageProps } from "gatsby";
+import BasicHead from "../components/basic-head.tsx";
+import Style from "../components/style.tsx";
 import Title from "../components/title.tsx";
 import Layout from "../components/layout.tsx";
 import PostList from "../components/post-list.tsx";
@@ -9,9 +11,12 @@ import Search from "../components/search.tsx";
 import Sidebar from "../components/sidebar.tsx";
 import Breadcrumbs from "../components/breadcrumbs.tsx";
 
-export const Head: HeadFC = () => <Title>Table of Contents</Title>;
+export const Head: HeadFC = () => <>
+    <BasicHead />
+    <Title>Table of Contents</Title>
+</>;
 
-export const IndexPage: React.FC<PageProps> = () => {
+const IndexPage: React.FC<PageProps> = () => {
     const id = React.useId();
     return <Layout>
     <main aria-describedby={id}>

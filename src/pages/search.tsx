@@ -1,6 +1,7 @@
 import * as React from "react";
 import { navigate, Link, Script, useStaticQuery, graphql } from "gatsby";
 import type { HeadFC, PageProps } from "gatsby";
+import BasicHead from "../components/basic-head.tsx";
 import Title from "../components/title.tsx";
 import Layout from "../components/layout.tsx";
 import Sidebar from "../components/sidebar.tsx";
@@ -216,9 +217,12 @@ const parseParams = search => {
     return { s, category, tag, place };
 };
 
-export const Head: HeadFC = () => <Title>Search</Title>;
+export const Head: HeadFC = () => <>
+    <BasicHead />
+    <Title>Search</Title>
+</>;
 
-export const SearchPage: React.FC<PageProps> =
+const SearchPage: React.FC<PageProps> =
     ({location: { search }}) => {
         const { s, category, tag, place } = parseParams(search);
         return <SearchPageImpl s={s} category={category} tag={tag} place={place} />;

@@ -3,7 +3,7 @@ import { Link } from "gatsby";
 import { metadata } from "./metadata.module.css";
 
 const Place = ({place}) =>
-    <dd><Link to={`/search?place=${place}`}
+    <dd><Link to={encodeURI(`/search?place=${place}`)}
               data-pagefind-filter="place">{place}</Link></dd>;
 const Places = ({places}) => places.map(p => <Place key={p} place={p}/>);
 const PlaceList = ({places}) =>
@@ -14,7 +14,7 @@ const PlaceList = ({places}) =>
      </div>;
 
 const Tag = ({tag}) =>
-    <dd><Link to={`/search?tag=${tag}`}
+    <dd><Link to={encodeURI(`/search?tag=${tag}`)}
               data-pagefind-filter="tag">{tag}</Link></dd>;
 const Tags = ({tags}) => tags.map(t => <Tag key={t} tag={t} />);
 const TagList = ({tags}) =>

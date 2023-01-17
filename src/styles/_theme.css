@@ -1,39 +1,3 @@
-#notice {
-    margin-block: var(--line) ;
-}
-
-#paging, #search, #breadcrumbs {
-    inline-size: fit-content ;
-    max-inline-size: 100% ;
-}
-
-.breadcrumb {
-    all: unset ;
-    padding: 0 ;
-    margin: 0;
-    display: flex ;
-    flex-wrap: wrap ;
-    column-gap: 1ch ;
-    inline-size: fit-content ;
-    max-inline-size: 100% ;
-}
-.breadcrumb li {
-    all: unset ;
-}
-
-.breadcrumb li::before {
-    color: var(--emphasis-text);
-}
-
-.breadcrumb li::before {
-  display: inline-block;
-  margin-inline-end: 0.5em;
-  transform: rotate(15deg);
-  border-inline-end: 0.1em solid currentcolor;
-  block-size: 0.8em;
-  content: "";
-}
-
 .sr-only {
     position: absolute ;
     display: block ;
@@ -54,16 +18,6 @@
     overflow: hidden !important ;
 }
 
-ul.tags {
-    all: unset ;
-    display: flex ;
-    margin-block-end: var(--line) ;
-    flex-wrap: wrap ;
-    column-gap: 1em ;
-    inline-size: var(--measure) ;
-    max-inline-size: 100% ;
-}
-
 .greentext > li {
     all: unset ;
     display: block ;
@@ -78,7 +32,6 @@ ul.tags {
     inline-size: 1ex;
     content: "";
 }
-
 
 .greentext {
     all: unset ;

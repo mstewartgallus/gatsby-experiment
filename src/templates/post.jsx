@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, graphql } from "gatsby";
-import type { HeadFC, PageProps } from "gatsby";
+import BasicHead from "../components/basic-head.tsx";
 import Title from "../components/title.tsx";
 import Paging from "../components/paging.tsx";
 import Layout from "../components/layout.tsx";
@@ -15,7 +15,7 @@ import { Caesura } from "../components/caesura.tsx";
 import { Poem } from "../components/poem.tsx";
 
 const Notice = ({notice}) =>
-    (!notice || notice.length == 0) ? null :
+    (!notice || notice.length === 0) ? null :
     <dl>
       <div>
         <dt>Notice</dt>
@@ -25,21 +25,28 @@ const Notice = ({notice}) =>
       </div>
     </dl>;
 
-export const Head: HeadFC = ({ data: { post }}) =>
-    <Title>{post.metadata.title}</Title>;
-
-const shortcodes = { Lg, L, Caesura };
+const shortcodes = {
+    Lg, L, Caesura,
+    H1, H2, H3, H4, H5, H6
+};
 const poem = { ul: Lg, li: L };
 const autolinkHeadings = { h1: H1, h2: H2, h3: H3, h4: H4, h5: H5, h6: H6 };
 
 const defaultComponents = { ...shortcodes, ...autolinkHeadings };
 
-const components = new Map(Object.fromEntries({
+const components = {
     poem: { ...defaultComponents, ...poem },
-    prose: defaultComponents
-}));
+    prose: defaultComponents,
+    web: defaultComponents
+};
 
-export const BlogPost: React.FC<PageProps> = ({
+export const Head = ({ data: { post }}) =>
+<>
+    <BasicHead />
+    <Title>{post.metadata.title}</Title>
+</>;
+
+const BlogPost = ({
     children,
     data: {
         post: {
@@ -54,7 +61,8 @@ export const BlogPost: React.FC<PageProps> = ({
     }
 }) => {
     const id = React.useId();
-    return <MDXProvider components={components.get(category)}>
+
+    return <MDXProvider components={components[category]}>
         <Layout>
          <main data-pagefind-body aria-describedby={id}>
             <header>
@@ -63,7 +71,7 @@ export const BlogPost: React.FC<PageProps> = ({
               </hgroup>
               <Notice notice={notice} />
             </header>
-        { content.__typename == 'MdxContent' ? children : <Poem poem={content.body} />}
+        { content.__typename === 'MdxContent' ? children : <Poem poem={content.body} />}
         </main>
         <Sidebar>
           <Paging

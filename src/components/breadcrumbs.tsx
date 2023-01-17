@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "gatsby";
-import { breadcrumbs } from "./breadcrumbs.module.css";
+import { breadcrumbs, breadcrumb } from "./breadcrumbs.module.css";
 
 export const Breadcrumbs = ({children}) => {
     const id = React.useId();
@@ -11,7 +11,7 @@ export const Breadcrumbs = ({children}) => {
               </hgroup>
             </header>
 
-        <ol className="breadcrumb">{children}</ol>
+        <ol className={breadcrumb}>{children}</ol>
       </nav>;
 };
 export default Breadcrumbs;

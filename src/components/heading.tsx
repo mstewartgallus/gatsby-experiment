@@ -3,12 +3,15 @@ import { Link } from "gatsby";
 
 // Autolink Markdown Headings with ids
 const H = Hn => props => {
-    const id = props.id;
+    const { id, children } = props;
     if (!id) {
-        return <Hn {...props}>{children}</Hn>;
+        return <Hn {...props} />;
     }
-    return <Hn {...props}>{children}
-        <Link to={`#${id}`} aria-describedby={id}>Link</Link>
+    const textId = React.useId();
+    return <Hn {...props}>
+        <span role="presentation" id={textId}>{children}</span>
+        &emsp;
+        <Link to={`#${id}`} aria-describedby={textId}>#</Link>
         </Hn>;
 };
 

@@ -2,10 +2,15 @@ import * as React from "react";
 import { Link, HeadFC, PageProps } from "gatsby";
 import Sidebar from "../components/sidebar.tsx";
 import Layout from "../components/layout.tsx";
+import BasicHead from "../components/basic-head.tsx";
+import Title from "../components/title.tsx";
 
-export const Head: HeadFC = () => <title>Not found</title>;
+export const Head: HeadFC = () => <>
+  <BasicHead />
+  <Title>Not found</Title>
+</>;
 
-export const NotFoundPage: React.FC<PageProps> = () => {
+const NotFoundPage: React.FC<PageProps> = () => {
     const id = React.useId();
     return <Layout>
     <main aria-describedby={id}>

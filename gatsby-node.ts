@@ -2,7 +2,6 @@ import moment from "moment";
 import path from "path";
 import { promises as fs } from "fs";
 import { spawn } from "child_process";
-import process from "process";
 import slugify from "slugify";
 import grayMatter from "gray-matter";
 
@@ -23,7 +22,7 @@ const frontmatter = source => {
     });
 };
 
-function slugOf({ date, category, title }) {
+const slugOf = ({ date, category, title }) => {
     // 2022-10-20 10:49 -0800
     const utc = moment
         .utc(date, 'YYYY-MM-DD HH:mm Z', 'en')
@@ -35,7 +34,7 @@ function slugOf({ date, category, title }) {
     const titleSlug = slugify(title, opts);
 
     return `/${catSlug}/${utc}/${titleSlug}/`;
-}
+};
 
 const metadata = frontmatter => {
     let { category, date, title, notice, tags, places } = frontmatter;
@@ -68,10 +67,11 @@ const parsePoem = source => {
         return lines.map(line => {
             line = line.trim();
             const segments = line.split('‖');
-            return segments;
+            return segments.map(seg => seg.trim());
         });
     });
 };
+
 const postNodeOfPoemFile = async ({ node, loadNodeContent }) => {
     const category = node.relativeDirectory;
 
@@ -102,7 +102,7 @@ const postNodeOfMdx = async ({ node, getNode }) => {
     };
 };
 
-async function next(source, args, context, info) {
+const next = async (source, args, context, info) => {
     const { id, metadata: { date } } = source;
     const { entries } = await context.nodeModel.findAll({
         type: 'Post',
@@ -120,9 +120,9 @@ async function next(source, args, context, info) {
         return x[0];
     }
     return null;
-}
+};
 
-async function previous(source, args, context, info) {
+const previous = async (source, args, context, info) => {
     const { id, metadata: { date } } = source;
     const { entries } = await context.nodeModel.findAll({
         type: 'Post',
@@ -140,28 +140,38 @@ async function previous(source, args, context, info) {
         return x[0];
     }
     return null;
-}
+};
 
-const pagefind = async () => {
+const pagefind = async ({reporter}) => {
     const pf = spawn("yarn",
                      ["run", "pagefind",
                       "--source", "public",
                       "--bundle-dir", "static/pagefind"]);
     pf.stdout.on('data', (data) => {
-        process.stdout.write(data);
+        reporter.info(data.toString());
     });
     pf.stderr.on('data', (data) => {
-        process.stderr.write(data);
+        reporter.warn(data.toString());
     });
     const code = await new Promise(r => pf.on('exit', r));
     if (code !== 0) {
-        process.stderr.write(`pagefind ${code}`);
+        reporter.panic(`pagefind ${code}`);
     }
 };
 
-const pagefindPlugin = {
+class PagefindPlugin {
+    #reporter;
+
+    constructor({reporter}) {
+        this.#reporter = reporter;
+    }
+
     apply(compiler) {
-        compiler.hooks.done.tapPromise('PagefindPlugin', pagefind);
+        const reporter = this.#reporter;
+
+        compiler.hooks.done.tapPromise('PagefindPlugin', async compilation => {
+            await pagefind({reporter});
+        });
     }
 };
 
@@ -214,7 +224,7 @@ const onCreateMdxNode = async ({
     await actions.createParentChildLink({ parent: node, child: postNode });
 };
 
-export async function createSchemaCustomization({ actions, schema }) {
+export const createSchemaCustomization = async ({ actions, schema }) => {
     const { createTypes } = actions;
     const types = await fs.readFile('type-defs.gql', { encoding: `utf-8` });
     await createTypes(types);
@@ -238,7 +248,7 @@ export const onCreateNode = async props => {
         case 'File':
             return await onCreateFileNode(props);
     }
-}
+};
 
 export const createResolvers = async ({ createResolvers }) => {
     await createResolvers({
@@ -280,8 +290,8 @@ export const createPages = async ({ graphql, actions, reporter }) => {
     }
 
     const posts = result.data.allPost.nodes
-    const mdxTemplate = path.resolve('./src/templates/post.tsx');
-    const poemTemplate = path.resolve('./src/templates/post.tsx');
+    const mdxTemplate = path.resolve('./src/templates/post.jsx');
+    const poemTemplate = path.resolve('./src/templates/post.jsx');
     for (const post of posts) {
         const { id, metadata: { slug }, content } = post;
         switch (content.__typename) {
@@ -309,6 +319,8 @@ export const createPages = async ({ graphql, actions, reporter }) => {
     }
 };
 
-export const onCreateWebpackConfig = async ({ stage, actions, plugins }) => {
-    await actions.setWebpackConfig({ plugins: [pagefindPlugin] });
+export const onCreateWebpackConfig = async ({ stage, actions, plugins, reporter }) => {
+    await actions.setWebpackConfig({
+        plugins: [new PagefindPlugin({reporter})]
+    });
 };
