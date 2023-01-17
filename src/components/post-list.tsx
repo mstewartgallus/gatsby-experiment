@@ -1,26 +1,15 @@
 import * as React from "react";
-import { Link, graphql, useStaticQuery } from "gatsby";
-
-const usePosts = () => useStaticQuery(graphql`
-query {
-  allPost(sort: {date: DESC}) {
-    nodes {
-      metadata {
-        title
-        slug
-     }
-   }
-  }
-}`).allPost.nodes;
+import { Link } from "gatsby";
+import { usePostList } from "../hooks/use-post-list.ts";
 
 export const PostList = () => {
-    const posts = usePosts();
+    const posts = usePostList();
 
     if (!posts || posts.length === 0) {
         return null;
     }
     return <ol reversed>
-    {posts.map(({ metadata: { slug, title }}) =>
+    {posts.map(({ slug, title }) =>
         <li key={slug}>
           <Link to={slug}>{title}</Link>
         </li>)}

@@ -40,9 +40,9 @@ const components = {
     web: defaultComponents
 };
 
-export const Head = ({ data: { post }}) =>
+export const Head = ({ location: {pathname}, data: { post }}) =>
 <>
-    <BasicHead />
+    <BasicHead pathname={pathname} />
     <Title>{post.metadata.title}</Title>
 </>;
 
@@ -112,7 +112,7 @@ query BlogPostById($id: String!) {
     }
     metadata {
       dateDisplay: date(formatString: "YYYY-MM-DD")
-      dateXml: date(formatString: "YYYY-MM-DD HH:mm Z")
+      dateXml: date(formatString: "YYYY-MM-DDTHH:mmZ")
       title
       category
       notice

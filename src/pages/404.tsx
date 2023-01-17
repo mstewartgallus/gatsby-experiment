@@ -1,12 +1,13 @@
 import * as React from "react";
-import { Link, HeadFC, PageProps } from "gatsby";
+import { Link } from "gatsby";
+import type { HeadFC, PageProps } from "gatsby";
 import Sidebar from "../components/sidebar.tsx";
 import Layout from "../components/layout.tsx";
 import BasicHead from "../components/basic-head.tsx";
 import Title from "../components/title.tsx";
 
-export const Head: HeadFC = () => <>
-  <BasicHead />
+export const Head: HeadFC = ({location: {pathname}}) => <>
+  <BasicHead pathname={pathname} />
   <Title>Not found</Title>
 </>;
 

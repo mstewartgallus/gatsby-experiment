@@ -11,12 +11,14 @@ query {
 }`).site.siteMetadata.title;
 
 export const Title = ({ children }) => {
-    const title = useTitle();
-    return <title>{
-        children == null ?
-            title :
-            <>{children}&thinsp;&mdash;&thinsp;{title}</>
-    }</title>;
+    let title = useTitle();
+    if (children !== null) {
+        title = `${children}\u2009\u2014\u2009${title}`;
+    }
+    return <>
+        <title>{title}</title>
+        <meta property="og:title" content={title} />
+        </>;
 };
 
 export default Title;

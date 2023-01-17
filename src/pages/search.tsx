@@ -1,5 +1,5 @@
 import * as React from "react";
-import { navigate, Link, Script, useStaticQuery, graphql } from "gatsby";
+import { navigate, Link } from "gatsby";
 import type { HeadFC, PageProps } from "gatsby";
 import BasicHead from "../components/basic-head.tsx";
 import Title from "../components/title.tsx";
@@ -8,6 +8,7 @@ import Sidebar from "../components/sidebar.tsx";
 import Select from "../components/select.tsx";
 import Option from "../components/option.tsx";
 import Breadcrumbs from "../components/breadcrumbs.tsx";
+import { usePostTags } from "../hooks/use-post-tags.ts";
 import { search } from "./search.module.css";
 
 const imp = new Function('x', 'return import(x);');
@@ -19,15 +20,6 @@ const pagefindToPost = ({ url, meta: { title } }) => ({
     'href': url,
     'value': title
 });
-
-const useTags = () => useStaticQuery(graphql`
-query {
-  allPost {
-     place: distinct(field: {metadata: {places: SELECT}})
-     tags: distinct(field: {metadata: {tags: SELECT}})
-     category: distinct(field: {metadata: {category: SELECT}})
-  }
-}`).allPost;
 
 const mapPromise = async (xs, f) => {
     return await Promise.all(xs.map(f));
@@ -96,7 +88,7 @@ const SearchForm = ({s, category, place, tag}) => {
     const [getS, setS] = React.useState(s);
     const onChangeS = (event) => setS(event.target.value);
 
-    const tags = useTags();
+    const tags = usePostTags();
 
     const selects = {
         'category': selectState('Category', tags.category, category),
@@ -217,8 +209,8 @@ const parseParams = search => {
     return { s, category, tag, place };
 };
 
-export const Head: HeadFC = () => <>
-    <BasicHead />
+export const Head: HeadFC = ({location: {pathname}}) => <>
+   <BasicHead pathname={pathname} />
     <Title>Search</Title>
 </>;
 

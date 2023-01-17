@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Link, graphql, useStaticQuery } from "gatsby";
+import { useSiteMetadata } from "../hooks/use-site-metadata.ts";
 import { banner } from "./banner.module.css";
 
 const useMetadata = () => useStaticQuery(graphql`
@@ -14,7 +15,7 @@ query {
 
 const Banner = () => {
     const id = React.useId();
-    const { title, description } = useMetadata();
+    const { title, description } = useSiteMetadata();
 
     return <header className={banner} aria-describedby={id}>
           <hgroup>
