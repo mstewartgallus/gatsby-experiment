@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSiteMetadata } from '../hooks/use-site-metadata.ts';
+import { useSiteMetadata } from '../hooks/use-site-metadata.js';
 import favicon from '../assets/favicon.svg';
 
 // {%- capture type -%}

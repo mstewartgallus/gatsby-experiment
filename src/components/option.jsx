@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Link } from "gatsby";
 import { option } from "./option.module.css";
-import { NameContext } from "./select.tsx";
+import { NameContext } from "./select.jsx";
 
 export const Option = ({ children, onChange, selected, value }) => {
     const name = React.useContext(NameContext);

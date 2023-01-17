@@ -1,17 +1,7 @@
 import * as React from "react";
-import { Link, graphql, useStaticQuery } from "gatsby";
-import { useSiteMetadata } from "../hooks/use-site-metadata.ts";
+import { Link } from "gatsby";
+import { useSiteMetadata } from "../hooks/use-site-metadata.js";
 import { banner } from "./banner.module.css";
-
-const useMetadata = () => useStaticQuery(graphql`
-query {
-  site {
-    siteMetadata {
-      title
-      description
-     }
-  }
-}`).site.siteMetadata;
 
 const Banner = () => {
     const id = React.useId();

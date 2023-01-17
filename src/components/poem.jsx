@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Link } from "gatsby";
-import { Lg } from "./lg.tsx";
-import { L } from "./l.tsx";
-import { Caesura } from "./caesura.tsx";
+import { Lg } from "./lg.jsx";
+import { L } from "./l.jsx";
+import { Caesura } from "./caesura.jsx";
 
 export const Poem = ({ poem }) =>
     poem.map(stanza => <Lg>{

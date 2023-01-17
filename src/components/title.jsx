@@ -1,17 +1,8 @@
 import * as React from "react";
-import { graphql, useStaticQuery } from "gatsby";
-
-const useTitle = () => useStaticQuery(graphql`
-query {
-  site {
-    siteMetadata {
-      title
-    }
-  }
-}`).site.siteMetadata.title;
+import { useSiteMetadata } from "../hooks/use-site-metadata.js";
 
 export const Title = ({ children }) => {
-    let title = useTitle();
+    let title = useSiteMetadata().title;
     if (children !== null) {
         title = `${children}\u2009\u2014\u2009${title}`;
     }

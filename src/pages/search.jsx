@@ -1,14 +1,13 @@
 import * as React from "react";
 import { navigate, Link } from "gatsby";
-import type { HeadFC, PageProps } from "gatsby";
-import BasicHead from "../components/basic-head.tsx";
-import Title from "../components/title.tsx";
-import Layout from "../components/layout.tsx";
-import Sidebar from "../components/sidebar.tsx";
-import Select from "../components/select.tsx";
-import Option from "../components/option.tsx";
-import Breadcrumbs from "../components/breadcrumbs.tsx";
-import { usePostTags } from "../hooks/use-post-tags.ts";
+import BasicHead from "../components/basic-head.jsx";
+import Title from "../components/title.jsx";
+import Layout from "../components/layout.jsx";
+import Sidebar from "../components/sidebar.jsx";
+import Select from "../components/select.jsx";
+import Option from "../components/option.jsx";
+import Breadcrumbs from "../components/breadcrumbs.jsx";
+import { usePostTags } from "../hooks/use-post-tags.js";
 import { search } from "./search.module.css";
 
 const imp = new Function('x', 'return import(x);');
@@ -28,7 +27,7 @@ const mapPromise = async (xs, f) => {
 const runSearch = async (s, { signal, filter: {category, tag, place }}) => {
     signal.throwIfAborted();
 
-    if (s == '') {
+    if (s === '') {
         s = null;
     }
 
@@ -65,7 +64,7 @@ const runSearch = async (s, { signal, filter: {category, tag, place }}) => {
     return links;
 };
 
-const selectState = (legend, all, value) => {
+const useState = (legend, all, value) => {
     const [selected, setter] = React.useState(new Set(value));
     return {
         legend,
@@ -85,16 +84,19 @@ const selectState = (legend, all, value) => {
 };
 
 const SearchForm = ({s, category, place, tag}) => {
+    const id = React.useId();
+
     const [getS, setS] = React.useState(s);
-    const onChangeS = (event) => setS(event.target.value);
 
     const tags = usePostTags();
 
     const selects = {
-        'category': selectState('Category', tags.category, category),
-        'place': selectState('Place', tags.place, place),
-        'tag': selectState('Tag', tags.tags, tag)
+        'category': useState('Category', tags.category, category),
+        'place': useState('Place', tags.place, place),
+        'tag': useState('Tag', tags.tags, tag)
     };
+
+    const onChangeS = (event) => setS(event.target.value);
 
     const onSubmit = (event) => {
         event.preventDefault();
@@ -110,7 +112,6 @@ const SearchForm = ({s, category, place, tag}) => {
         navigate(`/search?${p}`);
     };
 
-    const id = React.useId();
     return <form className={search} aria-describedby={id} role="search" rel="search"
         action="/search"
         onSubmit={onSubmit}>
@@ -209,15 +210,14 @@ const parseParams = search => {
     return { s, category, tag, place };
 };
 
-export const Head: HeadFC = ({location: {pathname}}) => <>
+export const Head = ({location: {pathname}}) => <>
    <BasicHead pathname={pathname} />
     <Title>Search</Title>
 </>;
 
-const SearchPage: React.FC<PageProps> =
-    ({location: { search }}) => {
-        const { s, category, tag, place } = parseParams(search);
-        return <SearchPageImpl s={s} category={category} tag={tag} place={place} />;
-    };
+const SearchPage = ({location: { search }}) => {
+    const { s, category, tag, place } = parseParams(search);
+    return <SearchPageImpl s={s} category={category} tag={tag} place={place} />;
+};
 
 export default SearchPage;

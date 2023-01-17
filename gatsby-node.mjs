@@ -4,6 +4,14 @@ import { promises as fs } from "fs";
 import { spawn } from "child_process";
 import slugify from "slugify";
 import grayMatter from "gray-matter";
+import * as url from "url";
+
+const metaUrl = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url)));
+const resolve = path => url.fileURLToPath(new URL(path, metaUrl));
+
+const typeDefs = resolve('./src/type-defs.gql');
+const mdxTemplate = resolve('./src/templates/post.jsx');
+const poemTemplate = resolve('./src/templates/post.jsx');
 
 const frontmatter = source => {
     return grayMatter(source, {
@@ -159,22 +167,6 @@ const pagefind = async ({reporter}) => {
     }
 };
 
-class PagefindPlugin {
-    #reporter;
-
-    constructor({reporter}) {
-        this.#reporter = reporter;
-    }
-
-    apply(compiler) {
-        const reporter = this.#reporter;
-
-        compiler.hooks.done.tapPromise('PagefindPlugin', async compilation => {
-            await pagefind({reporter});
-        });
-    }
-};
-
 const onCreateFileNode = async props => {
     const {
         node,
@@ -224,9 +216,35 @@ const onCreateMdxNode = async ({
     await actions.createParentChildLink({ parent: node, child: postNode });
 };
 
+const usePostList = async ({graphql, reporter}) => {
+    const result = await graphql(`
+query Posts {
+   allPost {
+      nodes {
+          id
+          metadata {
+            slug
+          }
+          content {
+            __typename
+            ... on MdxContent {
+               contentFilePath
+            }
+          }
+        }
+      }
+    }
+`);
+    if (result.errors) {
+        reporter.panicOnBuild('Error loading posts', result.errors);
+        return;
+    }
+    return result.data.allPost.nodes;
+};
+
 export const createSchemaCustomization = async ({ actions, schema }) => {
     const { createTypes } = actions;
-    const types = await fs.readFile('type-defs.gql', { encoding: `utf-8` });
+    const types = await fs.readFile(typeDefs, { encoding: `utf-8` });
     await createTypes(types);
     await createTypes([schema.buildUnionType({
         name: 'Content',
@@ -262,36 +280,10 @@ export const createResolvers = async ({ createResolvers }) => {
 export const createPages = async ({ graphql, actions, reporter }) => {
     const { createPage } = actions;
 
-    const result = await graphql(`
-    query Posts {
-      allPost {
-        nodes {
-          id
-          metadata {
-            slug
-          }
-          content {
-            __typename
-            ... on MdxContent {
-               contentFilePath
-            }
-            ... on PoemContent {
-               body
-            }
-          }
-        }
-      }
-    }
-`);
-
-    if (result.errors) {
-        reporter.panicOnBuild('Error loading posts', result.errors);
+    const posts = await usePostList({ graphql, reporter });
+    if (!posts) {
         return;
     }
-
-    const posts = result.data.allPost.nodes
-    const mdxTemplate = path.resolve('./src/templates/post.jsx');
-    const poemTemplate = path.resolve('./src/templates/post.jsx');
     for (const post of posts) {
         const { id, metadata: { slug }, content } = post;
         switch (content.__typename) {
@@ -319,8 +311,6 @@ export const createPages = async ({ graphql, actions, reporter }) => {
     }
 };
 
-export const onCreateWebpackConfig = async ({ stage, actions, plugins, reporter }) => {
-    await actions.setWebpackConfig({
-        plugins: [new PagefindPlugin({reporter})]
-    });
+export const onPostBuild = async ({ stage, actions, plugins, reporter }) => {
+    await pagefind({ reporter });
 };

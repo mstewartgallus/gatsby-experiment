@@ -1,18 +1,18 @@
 import * as React from "react";
 import { Link, graphql } from "gatsby";
-import BasicHead from "../components/basic-head.tsx";
-import Title from "../components/title.tsx";
-import Paging from "../components/paging.tsx";
-import Layout from "../components/layout.tsx";
-import Sidebar from "../components/sidebar.tsx";
-import Metadata from "../components/metadata.tsx";
-import Breadcrumbs from "../components/breadcrumbs.tsx";
+import BasicHead from "../components/basic-head.jsx";
+import Title from "../components/title.jsx";
+import Paging from "../components/paging.jsx";
+import Layout from "../components/layout.jsx";
+import Sidebar from "../components/sidebar.jsx";
+import Metadata from "../components/metadata.jsx";
+import Breadcrumbs from "../components/breadcrumbs.jsx";
 import { MDXProvider } from "@mdx-js/react";
-import { H1, H2, H3, H4, H5, H6 } from "../components/heading.tsx";
-import { Lg } from "../components/lg.tsx";
-import { L } from "../components/l.tsx";
-import { Caesura } from "../components/caesura.tsx";
-import { Poem } from "../components/poem.tsx";
+import { H1, H2, H3, H4, H5, H6 } from "../components/heading.jsx";
+import { Lg } from "../components/lg.jsx";
+import { L } from "../components/l.jsx";
+import { Caesura } from "../components/caesura.jsx";
+import { Poem } from "../components/poem.jsx";
 
 const Notice = ({notice}) =>
     (!notice || notice.length === 0) ? null :

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "gatsby";
-import { usePostList } from "../hooks/use-post-list.ts";
+import { usePostList } from "../hooks/use-post-list.js";
 
 export const PostList = () => {
     const posts = usePostList();

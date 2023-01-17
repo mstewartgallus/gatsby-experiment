@@ -1,17 +1,15 @@
 import * as React from "react";
-import type { HeadFC, PageProps } from "gatsby";
-import BasicHead from "../components/basic-head.tsx";
-import Style from "../components/style.tsx";
-import Title from "../components/title.tsx";
-import Layout from "../components/layout.tsx";
-import PostList from "../components/post-list.tsx";
-import Banner from "../components/banner.tsx";
-import Search from "../components/search.tsx";
-import Sidebar from "../components/sidebar.tsx";
-import Breadcrumbs from "../components/breadcrumbs.tsx";
-import JsonLd from "../components/json-ld.tsx";
-import { useAbsolute } from "../hooks/use-absolute.ts";
-import { useSiteMetadata } from "../hooks/use-site-metadata.ts";
+import BasicHead from "../components/basic-head.jsx";
+import Title from "../components/title.jsx";
+import Layout from "../components/layout.jsx";
+import PostList from "../components/post-list.jsx";
+import Banner from "../components/banner.jsx";
+import Search from "../components/search.jsx";
+import Sidebar from "../components/sidebar.jsx";
+import Breadcrumbs from "../components/breadcrumbs.jsx";
+import JsonLd from "../components/json-ld.jsx";
+import { useAbsolute } from "../hooks/use-absolute.js";
+import { useSiteMetadata } from "../hooks/use-site-metadata.js";
 
 const useJSON = () => {
     const site = useSiteMetadata();
@@ -34,7 +32,7 @@ const useJSON = () => {
     };
 };
 
-export const Head: HeadFC = ({location: {pathname}}) => {
+export const Head = ({location: {pathname}}) => {
     const json = useJSON();
     return <>
     <BasicHead pathname={pathname} />
@@ -43,7 +41,7 @@ export const Head: HeadFC = ({location: {pathname}}) => {
     </>;
 };
 
-const IndexPage: React.FC<PageProps> = () => {
+const IndexPage = () => {
     const id = React.useId();
     return <Layout>
     <main aria-describedby={id}>
