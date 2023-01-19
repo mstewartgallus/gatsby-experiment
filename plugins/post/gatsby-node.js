@@ -1,17 +1,14 @@
 import moment from "moment";
-import path from "path";
 import { promises as fs } from "fs";
-import { spawn } from "child_process";
 import slugify from "slugify";
 import grayMatter from "gray-matter";
-import * as url from "url";
+import { mkResolve } from "../../src/utils/resolve.js";
 
-const metaUrl = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url)));
-const resolve = path => url.fileURLToPath(new URL(path, metaUrl));
+const resolve = mkResolve(import.meta);
 
-const typeDefs = resolve('./src/type-defs.gql');
-const mdxTemplate = resolve('./src/templates/post.jsx');
-const poemTemplate = resolve('./src/templates/post.jsx');
+const typeDefs = resolve('./type-defs.gql');
+const mdxTemplate = resolve('../../src/templates/post.jsx');
+const poemTemplate = resolve('../../src/templates/post.jsx');
 
 const frontmatter = source => {
     return grayMatter(source, {
@@ -45,7 +42,7 @@ const slugOf = ({ date, category, title }) => {
 };
 
 const metadata = frontmatter => {
-    let { category, date, title, notice, tags, places } = frontmatter;
+    let { category, date, title, subtitle, notice, tags, people, places } = frontmatter;
 
     if (!category) {
         throw new Error("no category");
@@ -57,13 +54,14 @@ const metadata = frontmatter => {
         throw new Error("no title");
     }
 
+    people = people ?? [];
     notice = notice ?? [];
     tags = tags ?? [];
     places = places ?? [];
 
     const slug = slugOf({ category, date, title });
 
-    return { slug, date, category, title, notice, tags, places };
+    return { slug, date, category, title, subtitle, notice, tags, places, people };
 };
 
 const parsePoem = source => {
@@ -148,23 +146,6 @@ const previous = async (source, args, context, info) => {
         return x[0];
     }
     return null;
-};
-
-const pagefind = async ({reporter}) => {
-    const pf = spawn("yarn",
-                     ["run", "pagefind",
-                      "--source", "public",
-                      "--bundle-dir", "static/pagefind"]);
-    pf.stdout.on('data', (data) => {
-        reporter.info(data.toString());
-    });
-    pf.stderr.on('data', (data) => {
-        reporter.warn(data.toString());
-    });
-    const code = await new Promise(r => pf.on('exit', r));
-    if (code !== 0) {
-        reporter.panic(`pagefind ${code}`);
-    }
 };
 
 const onCreateFileNode = async props => {
@@ -291,7 +272,7 @@ export const createPages = async ({ graphql, actions, reporter }) => {
                 {
                     await createPage({
                         path: slug,
-                        component: `${mdxTemplate}`,
+                        component: `${poemTemplate}`,
                         context: { id }
                     });
                     break;
@@ -309,8 +290,4 @@ export const createPages = async ({ graphql, actions, reporter }) => {
                 }
         }
     }
-};
-
-export const onPostBuild = async ({ stage, actions, plugins, reporter }) => {
-    await pagefind({ reporter });
 };

@@ -1,3 +1,5 @@
+@charset "utf-8";
+
 ::selection {
     background-color: var(--selected-item);
     color: var(--selected-item-text);
@@ -138,7 +140,7 @@ dl, dt, dd {
     margin: unset ;
 }
 
-@media print {
+@media screen {
     figcaption {
         position: sticky ;
         left: 0 ;
@@ -146,8 +148,6 @@ dl, dt, dd {
 
     figure {
         position: relative ;
-        overflow: auto ;
-
         overflow: auto ;
     }
 }
@@ -188,43 +188,13 @@ main {
     max-inline-size: 100% ;
 }
 
-@media print {
-    body {
-        margin: 0;
-        padding: 0;
-    }
-}
-
-@media screen {
-    body {
-        margin: 0 ;
-        padding: 0 ;
-        margin-block-start: var(--line);
-        padding-inline-start: calc(4 * var(--t));
-    }
-}
-
-body {
-    box-sizing: border-box ;
-
-    display: block ;
-
-    inline-size: fit-content;
-    max-inline-size: 100% ;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    :root {
-        scroll-behavior: smooth ;
-    }
+dl, header {
+    margin-block: var(--line) ;
 }
 
 @media print {
     :root {
         font-size: 14pt ;
-
-        padding-block: 1.5in ;
-        padding-inline: 1.5in 0 ;
     }
 }
 
@@ -236,29 +206,10 @@ body {
                 (var(--min-font-size) * 1rem
                  + var(--t) * (var(--max-font-size) - var(--min-font-size))) / 16
             ) ;
-
-        padding-inline:
-            calc(1rem + 5 * var(--t))
-            1rem ;
-        padding-block:
-            calc(var(--t) * var(--line-height))
-            calc(3 * var(--line)) ;
     }
 }
 
 :root {
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone ;
-
-    widows: 2 ;
-    orphans: 2 ;
-
-    display: flex ;
-    margin: 0;
-
-    box-sizing: border-box ;
-    inline-size: 100% ;
-
     line-height: var(--line) ;
     font-size-adjust: var(--ex-height) ;
 
@@ -275,7 +226,6 @@ body {
 
     color-scheme: light dark ;
 
-    background-color: var(--canvas) ;
     color: var(--canvas-text) ;
 
     accent-color: var(--accent-color) ;
@@ -293,14 +243,20 @@ body {
     --ratio-2: calc(var(--ratio-1) * var(--ratio-1)) ;
 }
 
-dl, header {
-    margin-block: var(--line) ;
+@media (prefers-reduced-motion: no-preference) {
+    :root {
+        scroll-behavior: smooth ;
+    }
 }
 
-#paging, #metadata, #search, #banner {
-    margin-block: var(--line) ;
+:root, body {
+    margin: 0;
 }
 
 body {
-    margin-block-start: calc(0 - var(--line)) ;
+    inline-size: fit-content ;
+}
+
+:root {
+    background-color: var(--canvas) ;
 }

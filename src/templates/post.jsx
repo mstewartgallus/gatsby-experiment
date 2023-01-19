@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Link, graphql } from "gatsby";
-import BasicHead from "../components/basic-head.jsx";
+import HeadBasic from "../components/head-basic.jsx";
+import SeoPost from "../components/seo-post.jsx";
 import Title from "../components/title.jsx";
 import Paging from "../components/paging.jsx";
 import Layout from "../components/layout.jsx";
@@ -14,16 +15,27 @@ import { L } from "../components/l.jsx";
 import { Caesura } from "../components/caesura.jsx";
 import { Poem } from "../components/poem.jsx";
 
-const Notice = ({notice}) =>
-    (!notice || notice.length === 0) ? null :
-    <dl>
-      <div>
-        <dt>Notice</dt>
-    {
-        notice.map(n => <dd key={n}>{n}</dd>)
+
+const Category = ({category}) => {
+    const to = encodeURI(`/search?category=${category}`);
+    return <Link to={to}
+                     rel="tag"
+                     data-pagefind-filter="category">{category}</Link>;
+};
+
+const Notice = ({notice}) => {
+    if (!notice || notice.length === 0) {
+        return null;
     }
-      </div>
-    </dl>;
+    return <dl>
+               <div>
+                   <dt>Notice</dt>
+                   {
+                       notice.map(n => <dd key={n}>{n}</dd>)
+                   }
+               </div>
+           </dl>;
+};
 
 const shortcodes = {
     Lg, L, Caesura,
@@ -40,11 +52,40 @@ const components = {
     web: defaultComponents
 };
 
-export const Head = ({ location: {pathname}, data: { post }}) =>
-<>
-    <BasicHead pathname={pathname} />
-    <Title>{post.metadata.title}</Title>
-</>;
+const Content = ({category, content, children}) => {
+    const type = content.__typename;
+    switch (type) {
+    case 'MdxContent':
+        return <MDXProvider components={components[category]}>{children}</MDXProvider>;
+    case 'PoemContent':
+        return <Poem poem={content.body} />;
+    default:
+        throw new Error(`unknown type: ${type}`);
+    }
+};
+
+export const Head = ({ location: {pathname}, data: { post }}) => {
+    const {
+        title, dateXml, category, tags, places, people
+    } = post.metadata;
+    const author = {
+        name: "Molly Stewart-Gallus",
+        url: "/about/"
+    };
+    return <>
+               <HeadBasic pathname={pathname} />
+               <Title>{title}</Title>
+               <SeoPost
+                   title={title}
+                   date={dateXml}
+                   author={author}
+                   category={category}
+                   tags={tags}
+                   people={people}
+                   places={places}
+               />
+           </>;
+};
 
 const BlogPost = ({
     children,
@@ -54,43 +95,47 @@ const BlogPost = ({
             next,
             content,
             metadata: {
-                category, dateXml, dateDisplay, title,
-                notice, tags, places
+                category, dateXml, dateDisplay, title, subtitle,
+                notice, tags, places, people
             }
         }
     }
 }) => {
     const id = React.useId();
 
-    return <MDXProvider components={components[category]}>
-        <Layout>
-         <main data-pagefind-body aria-describedby={id}>
-            <header>
-              <hgroup>
-            <h1 id={id}>{title}</h1>
-              </hgroup>
-              <Notice notice={notice} />
-            </header>
-        { content.__typename === 'MdxContent' ? children : <Poem poem={content.body} />}
-        </main>
-        <Sidebar>
-          <Paging
-            previous={previous?.metadata?.title}
-            next={next?.metadata?.title}
-            phref={previous?.metadata?.slug}
-            nhref={next?.metadata?.slug} />
-          <Metadata
-             author="Molly Stewart-Gallus"
-             dateDisplay={dateDisplay} dateXml={dateXml} tags={tags} places={places}
-          />
-        <Breadcrumbs>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to={`/search?category=${category}`}
-                   data-pagefind-meta="category">{category}</Link></li>
-          <li aria-current="page"><cite>{title}</cite></li>
-        </Breadcrumbs>
-        </Sidebar>
-</Layout></MDXProvider>;
+    return <Layout>
+               <main data-pagefind-body aria-describedby={id}>
+                   <header>
+                       <hgroup>
+                           <h1 id={id}>{title}</h1>
+                           {
+                               subtitle ? <p>{subtitle}</p> : null
+                           }
+                       </hgroup>
+                       <Notice notice={notice} />
+                   </header>
+                   <Content category={category} content={content}>
+                       {children}
+                   </Content>
+               </main>
+               <Sidebar>
+                   <Paging
+                       previous={previous?.metadata?.title}
+                       next={next?.metadata?.title}
+                       phref={previous?.metadata?.slug}
+                       nhref={next?.metadata?.slug} />
+                   <Metadata
+                       author="Molly Stewart-Gallus"
+                       dateDisplay={dateDisplay} dateXml={dateXml}
+                       tags={tags} places={places} people={people}
+                   />
+                   <Breadcrumbs>
+                       <li><Link to="/">Home</Link></li>
+                       <li><Category category={category} /></li>
+                       <li aria-current="page"><cite>{title}</cite></li>
+                   </Breadcrumbs>
+               </Sidebar>
+           </Layout>;
 };
 
 export default BlogPost;
@@ -114,10 +159,12 @@ query BlogPostById($id: String!) {
       dateDisplay: date(formatString: "YYYY-MM-DD")
       dateXml: date(formatString: "YYYY-MM-DDTHH:mmZ")
       title
+      subtitle
       category
       notice
       tags
       places
+      people
     }
     content {
       __typename

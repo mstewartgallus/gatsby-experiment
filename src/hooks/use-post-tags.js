@@ -6,6 +6,7 @@ query {
   allPost {
      place: distinct(field: {metadata: {places: SELECT}})
      tags: distinct(field: {metadata: {tags: SELECT}})
+     people: distinct(field: {metadata: {people: SELECT}})
      category: distinct(field: {metadata: {category: SELECT}})
   }
 }`).allPost;

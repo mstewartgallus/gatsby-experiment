@@ -1,8 +1,37 @@
+@media screen {
+    .layout {
+        padding-inline:
+            calc(1rem + 8 * var(--t))
+            1rem ;
+        padding-block:
+            calc(var(--t) * var(--line-height))
+            calc(3 * var(--line)) ;
+    }
+}
+
+@media print {
+    .layout {
+        padding-block: 1.5in ;
+        padding-inline: 1.5in 0 ;
+    }
+}
+
 @media (min-width: 130ch) {
     .layout {
         display: flex ;
     }
 }
+
 .layout {
+    margin-block-start: calc(0 - var(--line)) ;
+
     flex-wrap: wrap ;
+}
+
+.layout {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone ;
+
+    widows: 2 ;
+    orphans: 2 ;
 }

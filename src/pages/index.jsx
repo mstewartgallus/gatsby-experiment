@@ -1,5 +1,5 @@
 import * as React from "react";
-import BasicHead from "../components/basic-head.jsx";
+import HeadBasic from "../components/head-basic.jsx";
 import Title from "../components/title.jsx";
 import Layout from "../components/layout.jsx";
 import PostList from "../components/post-list.jsx";
@@ -35,7 +35,7 @@ const useJSON = () => {
 export const Head = ({location: {pathname}}) => {
     const json = useJSON();
     return <>
-    <BasicHead pathname={pathname} />
+    <HeadBasic pathname={pathname} />
     <Title>Table of Contents</Title>
     <JsonLd srcdoc={json} />
     </>;

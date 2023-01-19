@@ -1,6 +1,6 @@
 import * as React from "react";
 import { navigate, Link } from "gatsby";
-import BasicHead from "../components/basic-head.jsx";
+import HeadBasic from "../components/head-basic.jsx";
 import Title from "../components/title.jsx";
 import Layout from "../components/layout.jsx";
 import Sidebar from "../components/sidebar.jsx";
@@ -8,7 +8,7 @@ import Select from "../components/select.jsx";
 import Option from "../components/option.jsx";
 import Breadcrumbs from "../components/breadcrumbs.jsx";
 import { usePostTags } from "../hooks/use-post-tags.js";
-import { search } from "./search.module.css";
+import { search, query } from "./search.module.css";
 
 const imp = new Function('x', 'return import(x);');
 const getpf = async () => {
@@ -51,7 +51,7 @@ const runSearch = async (s, { signal, filter: {category, tag, place }}) => {
     if (place.length > 0) {
         filters.place = place;
     }
-    const posts = (await pf.search(s, { filters })).results;
+    const posts = (await pf.search(s, { filters })).results.slice(0, 10);
 
     signal.throwIfAborted();
 
@@ -64,39 +64,62 @@ const runSearch = async (s, { signal, filter: {category, tag, place }}) => {
     return links;
 };
 
-const useState = (legend, all, value) => {
-    const [selected, setter] = React.useState(new Set(value));
-    return {
-        legend,
-        all,
-        selected,
-        onChange: event => {
-            const { target: { checked, value } } = event;
-            const next = new Set(selected);
-            if (checked) {
-                next.add(value);
-            } else {
-                next.delete(value);
-            }
-            setter(next);
-        }
-    };
-};
-
-const SearchForm = ({s, category, place, tag}) => {
+const Query = ({value, onChange}) => {
     const id = React.useId();
 
-    const [getS, setS] = React.useState(s);
+    return <div className={query}>
+               <label htmlFor={id}>Query</label>
+               <input id={id} name="s" type="search"
+                      value={value}
+                      onChange={onChange}
+               />
+               <button type="submit">Search</button>
+           </div>;
+};
+
+const TagSelect = ({all, name, onChange, selected, children}) => {
+    const [getter, setter] = React.useState(new Set(selected));
+
+    const onChangeOption = event => {
+        const { target: { checked, value } } = event;
+        const next = new Set(getter);
+        if (checked) {
+            next.add(value);
+        } else {
+            next.delete(value);
+        }
+        setter(next);
+        onChange(next);
+    }
+    return <Select name={name}>
+        {children}
+        {
+            all.map(opt =>
+                <Option key={opt}
+                        onChange={onChangeOption}
+                        selected={getter.has(opt)}
+                        value={opt}>
+                    {opt}
+                </Option>)
+        }</Select>;
+};
+
+const SearchForm = ({action, s, category, place, tag, people}) => {
+    const id = React.useId();
+
+    const [getS, setS] = React.useState(s ?? '');
+    const [getCat, setCat] = React.useState(new Set(category));
+    const [getPlace, setPlace] = React.useState(new Set(place));
+    const [getPeople, setPeople] = React.useState(new Set(people));
+    const [getTag, setTag] = React.useState(new Set(tag));
 
     const tags = usePostTags();
 
-    const selects = {
-        'category': useState('Category', tags.category, category),
-        'place': useState('Place', tags.place, place),
-        'tag': useState('Tag', tags.tags, tag)
-    };
-
     const onChangeS = (event) => setS(event.target.value);
+    const onChangeCat = value => setCat(value);
+    const onChangeTag = value => setTag(value);
+    const onChangePlace = value => setPlace(value);
+    const onChangePeople = value => setPeople(value);
 
     const onSubmit = (event) => {
         event.preventDefault();
@@ -104,51 +127,50 @@ const SearchForm = ({s, category, place, tag}) => {
         const p = new URLSearchParams();
         p.set('s', getS);
 
-        for (const [k, {selected}] of Object.entries(selects)) {
-            for (const v of selected) {
-                p.append(k, v);
-            }
+        for (const v of getCat) {
+            p.append('category', v);
         }
-        navigate(`/search?${p}`);
+        for (const v of getPlace) {
+            p.append('place', v);
+        }
+        for (const v of getTag) {
+            p.append('tag', v);
+        }
+        for (const v of getPeople) {
+            p.append('person', v);
+        }
+
+        // FIXME just go where it was going to go anyhow
+        navigate(`${action}?${p}`);
     };
 
     return <form className={search} aria-describedby={id} role="search" rel="search"
-        action="/search"
-        onSubmit={onSubmit}>
-          <header className="sr-only">
-            <hgroup>
-               <h2 id={`${id}-title`}>Search</h2>
-            </hgroup>
-          </header>
+                 action={action}
+                 onSubmit={onSubmit}>
+               <header className="sr-only">
+                   <hgroup>
+                       <h2 id={id}>Search</h2>
+                   </hgroup>
+               </header>
 
-    <div className="search-basic">
-            <label htmlFor={`${id}-input`}>Query</label>
-            <input id={`${id}-input`} name="s" type="search"
-                   value={getS}
-                   onChange={onChangeS}
-            />
-            <button type="submit">Search</button>
-    </div>
+               <Query value={getS} onChange={onChangeS} />
 
-    {
-        Object.entries(selects).map(([name, {legend, all, selected, onChange}]) =>
-            <Select key={name} name={name}>
-               <legend>{legend}</legend>
-               {
-                   all.map(opt =>
-                       <Option key={opt}
-                            onChange={onChange}
-                            selected={selected.has(opt)}
-                            value={opt}>
-                       {opt}
-                      </Option>)
-               }</Select>
-            )
-    }
-</form>;
+               <TagSelect name="category" all={tags.category} selected={getCat} onChange={onChangeCat}>
+                   <legend>Category</legend>
+               </TagSelect>
+               <TagSelect name="place" all={tags.place} selected={getPlace} onChange={onChangePlace}>
+                   <legend>Place</legend>
+               </TagSelect>
+               <TagSelect name="person" all={tags.people} selected={getPeople} onChange={onChangePeople}>
+                   <legend>People</legend>
+               </TagSelect>
+               <TagSelect name="tag" all={tags.tags} selected={getTag} onChange={onChangeTag}>
+                   <legend>Tags</legend>
+               </TagSelect>
+           </form>;
 };
 
-const PostList = ({s, category, tag, place}) => {
+const PostList = ({s, category, tag, place, people}) => {
     const [ posts, setPosts ] = React.useState([]);
 
     React.useEffect(() => {
@@ -157,7 +179,7 @@ const PostList = ({s, category, tag, place}) => {
         (async () => {
             let p;
             try {
-                p = await runSearch(s, { signal, filter: { category, tag, place } });
+                p = await runSearch(s, { signal, filter: { category, tag, place, person: people } });
                 signal.throwIfAborted();
             } catch (e) {
                 if (e === 'newpage') {
@@ -169,7 +191,7 @@ const PostList = ({s, category, tag, place}) => {
             setPosts(p);
         })();
         return () => abort.abort('newpage');
-    }, [s, category, tag, place]);
+    }, [s, category, tag, place, people]);
 
     return <ul>{
         posts.map(({value, href}) =>
@@ -179,45 +201,52 @@ const PostList = ({s, category, tag, place}) => {
     }</ul>;
 };
 
-const SearchPageImpl = ({ s, category, tag, place }) => {
-    const id = React.useId();
-    return <Layout>
-        <main aria-describedby={id}>
-        <header>
-          <hgroup>
-            <h1 id={id}>Search</h1>
-          </hgroup>
-        </header>
-
-      <PostList s={s} category={category} tag={tag} place={place}/>
-    </main>
-    <Sidebar>
-      <SearchForm s={s} category={category} tag={tag} place={place} />
-      <Breadcrumbs>
-          <li><Link to="/">Home</Link></li>
-          <li aria-current="page"><cite>Search</cite></li>
-        </Breadcrumbs>
-    </Sidebar>
-</Layout>;
-};
-
 const parseParams = search => {
     const params = new URLSearchParams(search);
     const s = params.get('s') ?? '';
     const category = params.getAll('category');
     const tag = params.getAll('tag');
     const place = params.getAll('place');
-    return { s, category, tag, place };
+    const people = params.getAll('person');
+    return { s, category, tag, place, people };
 };
 
-export const Head = ({location: {pathname}}) => <>
-   <BasicHead pathname={pathname} />
-    <Title>Search</Title>
-</>;
+export const Head = ({location: {pathname, search}}) => {
+    const { s } = parseParams(search);
+    const title = s === '' ? 'Search' : `${s}\u2009\u2014\u2009Search`;
+    return <>
+               <HeadBasic pathname={pathname} />
+               <Title>{title}</Title>
+           </>;
+};
 
-const SearchPage = ({location: { search }}) => {
-    const { s, category, tag, place } = parseParams(search);
-    return <SearchPageImpl s={s} category={category} tag={tag} place={place} />;
+const SearchPage = ({ location: { pathname, search } }) => {
+    const id = React.useId();
+
+    const { s, category, tag, place, people } = parseParams(search);
+
+    const heading = s === '' ? 'Search' : `${s}\u2009\u2014\u2009Search`;
+    return <Layout>
+               <main aria-describedby={id}>
+                   <header>
+                       <hgroup>
+                           <h1 id={id}>{heading}</h1>
+                       </hgroup>
+                   </header>
+
+                   <PostList s={s} category={category} tag={tag} place={place}/>
+               </main>
+               <Sidebar>
+                   <SearchForm action={pathname} s={s}
+                               category={category} tag={tag} place={place}
+                               people={people}
+                   />
+                   <Breadcrumbs>
+                       <li><Link to="/">Home</Link></li>
+                       <li aria-current="page"><cite>Search</cite></li>
+                   </Breadcrumbs>
+               </Sidebar>
+           </Layout>;
 };
 
 export default SearchPage;

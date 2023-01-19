@@ -1,6 +1,4 @@
-fieldset, label, button, input {
-    border: unset ;
-}
+@charset "utf-8";
 
 .search-basic {
     display: flex ;
@@ -9,16 +7,8 @@ fieldset, label, button, input {
     align-items: flex-start ;
 }
 
-#character, #category, #tag, #place {
-    display: grid ;
-    grid-template-columns: auto 1fr ;
-    column-gap: 1em ;
-    inline-size: fit-content ;
-}
-
-#character, #tag {
-    overflow: auto ;
-    max-block-size: calc(20 * var(--line)) ;
+fieldset, label, button, input {
+    border: unset ;
 }
 
 button:focus-visible {

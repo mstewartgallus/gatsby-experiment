@@ -1,10 +1,9 @@
 import * as React from "react";
-import { Link } from "gatsby";
 import { option } from "./option.module.css";
-import { NameContext } from "./select.jsx";
+import { SelectContext } from "./select.jsx";
 
 export const Option = ({ children, onChange, selected, value }) => {
-    const name = React.useContext(NameContext);
+    const name = React.useContext(SelectContext);
     const [getSelected, setSelected] = React.useState(selected ?? false);
 
     const onChangeHook = (event) => {
@@ -15,13 +14,13 @@ export const Option = ({ children, onChange, selected, value }) => {
 
     const id = React.useId();
     return <div className={option}>
-             <input id={`${id}`}
-                     type="checkbox" name={name} value={value}
-                     onChange={onChangeHook}
-                     checked={getSelected}
-             />
-             <label htmlFor={`${id}`}>{children}</label>
-        </div>;
+               <input id={id}
+                      type="checkbox" name={name} value={value}
+                      onChange={onChangeHook}
+                      checked={getSelected}
+               />
+               <label htmlFor={id}>{children}</label>
+           </div>;
 };
 
 export default Option;

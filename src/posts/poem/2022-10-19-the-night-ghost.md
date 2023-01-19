@@ -6,7 +6,7 @@ notice:
 tags:
 - '2019'
 - Sleep Paralysis
-characters:
+people:
 - The Night Ghost
 places:
 - Downtown

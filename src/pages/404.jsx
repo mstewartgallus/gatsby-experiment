@@ -2,11 +2,11 @@ import * as React from "react";
 import { Link } from "gatsby";
 import Sidebar from "../components/sidebar.jsx";
 import Layout from "../components/layout.jsx";
-import BasicHead from "../components/basic-head.jsx";
+import HeadBasic from "../components/head-basic.jsx";
 import Title from "../components/title.jsx";
 
 export const Head = ({location: {pathname}}) => <>
-  <BasicHead pathname={pathname} />
+  <HeadBasic pathname={pathname} />
   <Title>Not found</Title>
 </>;
 

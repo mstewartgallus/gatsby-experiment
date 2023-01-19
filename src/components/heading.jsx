@@ -5,17 +5,17 @@ const Hn = props => {
     const level = props.level;
     switch (level) {
     case 1:
-        return <h1 {...props} />;
+        return <h1 {...props}>{props.children}</h1>;
     case 2:
-        return <h2 {...props} />;
+        return <h2 {...props}>{props.children}</h2>;
     case 3:
-        return <h3 {...props} />;
+        return <h3 {...props}>{props.children}</h3>;
     case 4:
-        return <h4 {...props} />;
+        return <h4 {...props}>{props.children}</h4>;
     case 5:
-        return <h5 {...props} />;
+        return <h5 {...props}>{props.children}</h5>;
     case 6:
-        return <h6 {...props} />;
+        return <h6 {...props}>{props.children}</h6>;
     default:
         return null;
     };

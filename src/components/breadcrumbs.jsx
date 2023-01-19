@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Link } from "gatsby";
 import { breadcrumbs, breadcrumb } from "./breadcrumbs.module.css";
 
 export const Breadcrumbs = ({children}) => {
