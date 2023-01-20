@@ -16,18 +16,6 @@
     }
 }
 
-@media (min-width: 130ch) {
-    .layout {
-        display: flex ;
-    }
-}
-
-.layout {
-    margin-block-start: calc(0 - var(--line)) ;
-
-    flex-wrap: wrap ;
-}
-
 .layout {
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone ;

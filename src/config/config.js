@@ -43,7 +43,7 @@ const feed = {
                 }
               }
             `,
-            output: "/feed/index.xml",
+            output: "/feed.xml",
             title: "Words to Kick Your Teeth Out"
         }
     ]
@@ -57,6 +57,9 @@ const config = {
     },
     graphqlTypegen: true,
     plugins: [
+        "pagefind",
+        "post",
+        "site",
         "gatsby-plugin-sitemap",
         {
             resolve: "gatsby-plugin-mdx",
@@ -71,17 +74,14 @@ const config = {
         {
             resolve: "gatsby-source-filesystem",
             options: {
-                path: resolve('../posts'),
+                path: resolve('../../blog'),
                 name: 'posts'
             }
         },
-        // {
-        //     resolve: "gatsby-plugin-feed",
-        //     options: feed
-        // },
-        "pagefind",
-        "post",
-        "site"
+        {
+            resolve: "gatsby-plugin-feed",
+            options: feed
+        }
     ]
 };
 

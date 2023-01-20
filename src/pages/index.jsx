@@ -1,10 +1,10 @@
 import * as React from "react";
 import HeadBasic from "../components/head-basic.jsx";
 import Title from "../components/title.jsx";
-import Layout from "../components/layout.jsx";
 import PostList from "../components/post-list.jsx";
 import Banner from "../components/banner.jsx";
 import Search from "../components/search.jsx";
+import Page from "../components/page.jsx";
 import Sidebar from "../components/sidebar.jsx";
 import Breadcrumbs from "../components/breadcrumbs.jsx";
 import JsonLd from "../components/json-ld.jsx";
@@ -32,18 +32,17 @@ const useJSON = () => {
     };
 };
 
-export const Head = ({location: {pathname}}) => {
-    const json = useJSON();
-    return <>
+export const Head = ({location: {pathname}}) =>
+<>
     <HeadBasic pathname={pathname} />
     <Title>Table of Contents</Title>
-    <JsonLd srcdoc={json} />
-    </>;
-};
+    <JsonLd srcdoc={useJSON()} />
+    <link type="application/atom+xml" rel="alternate" href="/feed.xml" />
+</>;
 
 const IndexPage = () => {
     const id = React.useId();
-    return <Layout>
+    return <Page>
     <main aria-describedby={id}>
         <header>
           <hgroup>
@@ -59,7 +58,7 @@ const IndexPage = () => {
           <li aria-current="page">Home</li>
         </Breadcrumbs>
     </Sidebar>
-</Layout>;
+</Page>;
 };
 
 export default IndexPage;

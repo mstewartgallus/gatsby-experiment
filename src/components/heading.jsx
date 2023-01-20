@@ -17,7 +17,7 @@ const Hn = props => {
     case 6:
         return <h6 {...props}>{props.children}</h6>;
     default:
-        return null;
+        throw new Error(`level > 6 ${level}`);
     };
 };
 

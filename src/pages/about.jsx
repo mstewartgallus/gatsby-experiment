@@ -2,8 +2,8 @@ import * as React from "react";
 import { Link } from "gatsby";
 import HeadBasic from "../components/head-basic.jsx";
 import Title from "../components/title.jsx";
-import Layout from "../components/layout.jsx";
 import Sidebar from "../components/sidebar.jsx";
+import Page from "../components/page.jsx";
 import Breadcrumbs from "../components/breadcrumbs.jsx";
 
 export const Head = ({location: {pathname}}) => {
@@ -45,7 +45,7 @@ const Content = () =>
 
 const AboutPage = () => {
     const id = React.useId();
-    return <Layout>
+    return <Page>
                <main aria-describedby={id}>
                    <header>
                        <hgroup>
@@ -61,7 +61,7 @@ const AboutPage = () => {
                        <li aria-current="page"><cite>About the Author</cite></li>
                    </Breadcrumbs>
                </Sidebar>
-           </Layout>;
+           </Page>;
 };
 
 export default AboutPage;

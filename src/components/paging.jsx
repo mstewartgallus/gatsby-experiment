@@ -3,14 +3,14 @@ import { Link } from "gatsby";
 import { paging } from "./paging.module.css";
 
 const Prev = ({ children, href }) =>
-      !href ? null :
+      href &&
     <div>
         <dt><Link to={href}>Previous</Link></dt>
         <dd>{children}</dd>
     </div>;
 
 const Next = ({ children, href }) =>
-      !href ? null :
+      href &&
     <div>
         <dt><Link to={href}>Next</Link></dt>
         <dd>{children}</dd>

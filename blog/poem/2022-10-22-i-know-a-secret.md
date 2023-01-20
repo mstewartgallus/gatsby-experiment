@@ -25,27 +25,30 @@ places:
 
 - The creature spoke again
 
-> + a few years back,
-> + I was sitting not far from here
-> + in the darkness, just out of sight
-> + a man raped a girl under cover of the night
 >
+> * a few years back,
+> * I was sitting not far from here
+> * in the darkness, just out of sight
+> * a man raped a girl under cover of the night
+
+
 > - I know a secret,
 > - for I see very well,
 > - even under<Caesura />the night.
 > - These eyes catch many things
 > - I will never tell.
-> 
+
 > + The truth came out
 > + decades later at the trial
 > + Your courts<Caesura />are not like ours
 > + We have eyes<Caesura />which catch
 > + The beating of the heart
 > + Whispers<Caesura />inside the throat
-> 
+
 > - I saw an old man ill and dying
 > - too rich and sick for jail
 > - When he was coughing sputum up
 > - I was sitting there
 > - I know a secret
 > - and I will never tell
+>
